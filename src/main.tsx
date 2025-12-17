@@ -19,4 +19,3 @@ ReactDOM.createRoot(rootElement).render(
     </GoogleOAuthProvider>
   </React.StrictMode>,
 )
-
