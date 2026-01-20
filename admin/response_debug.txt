@@ -1,0 +1,3 @@
+<br />
+<b>Warning</b>:  mysqli::__construct(): (HY000/2002): No connection could be made because the target machine actively refused it in <b>C:\xampp\htdocs\HertiX\admin\public\api\db.php</b> on line <b>11</b><br />
+{"status":"error","message":"Connection failed: No connection could be made because the target machine actively refused it"}

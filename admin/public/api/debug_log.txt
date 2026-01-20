@@ -1,0 +1,397 @@
+[2026-01-07 09:41:59] Request Received
+[2026-01-07 09:41:59] Array
+(
+    [owner_id] => 1
+    [name] => AgentTest
+    [price] => 999
+)
+
+[2026-01-07 09:41:59] Array
+(
+)
+
+[2026-01-07 09:41:59] No file uploaded or error: Unset
+[2026-01-07 09:41:59] Item inserted via Mysqli
+[2026-01-07 09:42:52] Request Received
+[2026-01-07 09:42:52] Array
+(
+    [owner_id] => 1
+    [name] => yjrede
+    [category] => Art
+    [price] => 569
+    [deposit] => 400
+    [description] => frjjrr
+)
+
+[2026-01-07 09:42:52] Array
+(
+    [image] => Array
+        (
+            [name] => upload_test.png
+            [type] => image/png
+            [tmp_name] => C:\xampp\tmp\php19BD.tmp
+            [error] => 0
+            [size] => 58715
+        )
+
+)
+
+[2026-01-07 09:42:52] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1767775372_upload_test.png
+[2026-01-07 09:42:52] Item inserted via Mysqli
+[2026-01-07 13:47:03] Request Received
+[2026-01-07 13:47:03] Array
+(
+    [owner_id] => 
+    [name] => ddsv
+    [category] => Decor
+    [price] => 566
+    [deposit] => 2333
+    [description] => wqdqdq
+)
+
+[2026-01-07 13:47:03] Array
+(
+    [image] => Array
+        (
+            [name] => brass lamb.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\phpA845.tmp
+            [error] => 0
+            [size] => 29660
+        )
+
+)
+
+[2026-01-07 13:47:03] Missing Owner ID
+[2026-01-07 14:03:04] Request Received
+[2026-01-07 14:03:04] Array
+(
+    [owner_id] => 
+    [name] => nia
+    [category] => Decor
+    [price] => 455
+    [deposit] => 150
+    [description] => qwert
+)
+
+[2026-01-07 14:03:04] Array
+(
+    [image] => Array
+        (
+            [name] => brass lamb.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\php5318.tmp
+            [error] => 0
+            [size] => 29660
+        )
+
+)
+
+[2026-01-07 14:03:04] Missing Owner ID
+[2026-01-07 14:15:49] Request Received
+[2026-01-07 14:15:49] Array
+(
+    [owner_id] => 
+    [name] => krfeqg
+    [category] => Jewelry
+    [price] => 4567
+    [deposit] => 687
+    [description] => wed3 fr
+)
+
+[2026-01-07 14:15:49] Array
+(
+    [image] => Array
+        (
+            [name] => brass lamb.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\phpFD8C.tmp
+            [error] => 0
+            [size] => 29660
+        )
+
+)
+
+[2026-01-07 14:15:49] Missing Owner ID
+[2026-01-07 14:26:03] Request Received
+[2026-01-07 14:26:03] Array
+(
+    [owner_id] => 3
+    [name] => kutta
+    [category] => Decor
+    [price] => 4500
+    [deposit] => 1255
+    [description] => yrbfehfeqfqbefuqb
+)
+
+[2026-01-07 14:26:03] Array
+(
+    [image] => Array
+        (
+            [name] => brass lamb.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\php5C1D.tmp
+            [error] => 0
+            [size] => 29660
+        )
+
+)
+
+[2026-01-07 14:26:03] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1767792363_brass lamb.webp
+[2026-01-07 14:26:03] Item inserted via Mysqli
+[2026-01-08 04:34:06] Request Received
+[2026-01-08 04:34:06] Array
+(
+    [owner_id] => 3
+    [name] => kathakali
+    [category] => Art
+    [quality] => Good
+    [quantity] => 2
+    [price] => 3000
+    [deposit] => 2500
+    [description] => kathakali is .........
+)
+
+[2026-01-08 04:34:06] Array
+(
+    [image] => Array
+        (
+            [name] => 9b44ed_1e42ea3f2dc1483280650edf25eeb2dc~mv2.avif
+            [type] => image/avif
+            [tmp_name] => C:\xampp\tmp\phpC6B0.tmp
+            [error] => 0
+            [size] => 91426
+        )
+
+)
+
+[2026-01-08 04:34:06] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1767843246_9b44ed_1e42ea3f2dc1483280650edf25eeb2dc~mv2.avif
+[2026-01-08 04:34:06] Item inserted via Mysqli
+[2026-01-08 04:57:06] Request Received
+[2026-01-08 04:57:06] Array
+(
+    [owner_id] => 1
+    [name] => nilavilaku
+    [category] => Art
+    [quality] => Vintage
+    [quantity] => 2
+    [price] => 780
+    [deposit] => 500
+    [description] => the te d qibw
+)
+
+[2026-01-08 04:57:06] Array
+(
+    [image] => Array
+        (
+            [name] => brass lamb.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\phpD330.tmp
+            [error] => 0
+            [size] => 29660
+        )
+
+)
+
+[2026-01-08 04:57:06] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1767844626_brass lamb.webp
+[2026-01-08 04:57:06] Item inserted via Mysqli
+[2026-01-08 05:18:52] Request Received
+[2026-01-08 05:18:52] Array
+(
+    [owner_id] => 1
+    [name] => kathakali full costume
+    [category] => Jewelry
+    [quality] => Vintage
+    [quantity] => 3
+    [price] => 3500
+    [deposit] => 2000
+    [description] => thrbfh g tghtu4bgbt4 gvtgb 4bg2b4t
+)
+
+[2026-01-08 05:18:52] Array
+(
+    [image] => Array
+        (
+            [name] => 9b44ed_1e42ea3f2dc1483280650edf25eeb2dc~mv2.avif
+            [type] => image/avif
+            [tmp_name] => C:\xampp\tmp\phpC1DC.tmp
+            [error] => 0
+            [size] => 91426
+        )
+
+)
+
+[2026-01-08 05:18:52] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1767845932_9b44ed_1e42ea3f2dc1483280650edf25eeb2dc~mv2.avif
+[2026-01-08 05:18:52] Item inserted via Mysqli
+[2026-01-08 05:35:34] Request Received
+[2026-01-08 05:35:34] Array
+(
+    [owner_id] => 1
+    [name] => kathakali
+    [category] => Art
+    [quality] => Good
+    [quantity] => 3
+    [price] => 3500
+    [deposit] => 2000
+    [description] => edgwdgwdpwhdecwdcpxhws8ox
+)
+
+[2026-01-08 05:35:34] Array
+(
+    [image] => Array
+        (
+            [name] => 9b44ed_1e42ea3f2dc1483280650edf25eeb2dc~mv2.avif
+            [type] => image/avif
+            [tmp_name] => C:\xampp\tmp\phpA18.tmp
+            [error] => 0
+            [size] => 91426
+        )
+
+)
+
+[2026-01-08 05:35:34] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1767846934_9b44ed_1e42ea3f2dc1483280650edf25eeb2dc~mv2.avif
+[2026-01-08 05:35:34] Item inserted via Mysqli
+[2026-01-12 11:11:54] Request Received
+[2026-01-12 11:11:54] Array
+(
+    [owner_id] => 1
+    [name] =>   thi
+    [category] => Art
+    [quality] => New
+    [quantity] => 3
+    [price] => 099
+    [deposit] => 567
+    [description] => rr
+)
+
+[2026-01-12 11:11:54] Array
+(
+    [image] => Array
+        (
+            [name] => 9b44ed_e82710cbd11f47edbe1360f77c22b424~mv2.avif
+            [type] => image/avif
+            [tmp_name] => C:\xampp\tmp\php71F1.tmp
+            [error] => 0
+            [size] => 67503
+        )
+
+)
+
+[2026-01-12 11:11:54] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1768212714_9b44ed_e82710cbd11f47edbe1360f77c22b424~mv2.avif
+[2026-01-12 11:11:54] Item inserted via Mysqli
+[2026-01-16 05:52:17] Request Received
+[2026-01-16 05:52:17] Array
+(
+    [owner_id] => 1
+    [name] => Nilavilaku
+    [category] => Ritual
+    [occasion] => Wedding
+    [quality] => Good
+    [quantity] => 3
+    [price] => 489
+    [deposit] => 250
+    [description] => Nilavilakku is a traditional brass lamp widely used in Kerala for religious and cultural occasions. It symbolizes prosperity and positivity and is commonly placed at the entrance of homes, wedding venues, and temples during important rituals and celebrations.
+)
+
+[2026-01-16 05:52:17] Array
+(
+    [image] => Array
+        (
+            [name] => brass lamb.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\php4703.tmp
+            [error] => 0
+            [size] => 29660
+        )
+
+)
+
+[2026-01-16 05:52:17] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1768539137_brass lamb.webp
+[2026-01-16 05:52:17] Database Error: Prepare failed: Unknown column 'occasion' in 'field list'
+[2026-01-16 05:54:19] Request Received
+[2026-01-16 05:54:19] Array
+(
+    [owner_id] => 1
+    [name] => Nilavilaku
+    [category] => Ritual
+    [occasion] => Wedding
+    [quality] => Good
+    [quantity] => 3
+    [price] => 489
+    [deposit] => 250
+    [description] => Nilavilakku is a traditional brass lamp widely used in Kerala for religious and cultural occasions. It symbolizes prosperity and positivity and is commonly placed at the entrance of homes, wedding venues, and temples during important rituals and celebrations.
+)
+
+[2026-01-16 05:54:19] Array
+(
+    [image] => Array
+        (
+            [name] => brass lamb.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\php21FE.tmp
+            [error] => 0
+            [size] => 29660
+        )
+
+)
+
+[2026-01-16 05:54:19] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1768539259_brass lamb.webp
+[2026-01-16 05:54:19] Item inserted via Mysqli
+[2026-01-19 07:42:56] Request Received
+[2026-01-19 07:42:56] Array
+(
+    [owner_id] => 1
+    [name] => Para
+    [category] => Decor
+    [occasion] => Vishu
+    [quality] => Good
+    [quantity] => 5
+    [price] => 450
+    [deposit] => 200
+    [description] => thewb
+)
+
+[2026-01-19 07:42:56] Array
+(
+    [image] => Array
+        (
+            [name] => para.jpg
+            [type] => image/jpeg
+            [tmp_name] => C:\xampp\tmp\php18DE.tmp
+            [error] => 0
+            [size] => 58635
+        )
+
+)
+
+[2026-01-19 07:42:56] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1768804976_para.jpg
+[2026-01-19 07:42:56] Item inserted via Mysqli
+[2026-01-19 13:28:48] Request Received
+[2026-01-19 13:28:48] Array
+(
+    [owner_id] => 1
+    [name] => nettipattam
+    [category] => Jewelry
+    [occasion] => Temple Ritual
+    [quality] => Good
+    [quantity] => 7
+    [price] => 800
+    [deposit] => 350
+    [description] => nettipattam is a...
+)
+
+[2026-01-19 13:28:48] Array
+(
+    [image] => Array
+        (
+            [name] => ner.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\phpBD99.tmp
+            [error] => 0
+            [size] => 85524
+        )
+
+)
+
+[2026-01-19 13:28:48] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1768825728_ner.webp
+[2026-01-19 13:28:48] Item inserted via Mysqli
