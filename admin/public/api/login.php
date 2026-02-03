@@ -11,19 +11,35 @@ if (!isset($data->email) || !isset($data->password)) {
 $email = $conn->real_escape_string($data->email);
 $password = $data->password;
 
-// 1. Check Shop Owners Table
-$sql = "SELECT id, name, password, role FROM shopowners WHERE email = '$email'";
-$result = $conn->query($sql);
-
-if ($result->num_rows == 0) {
-    // 2. If not in owners, Check Users Table
-    $sql = "SELECT id, name, password, role FROM users WHERE email = '$email'";
-    $result = $conn->query($sql);
+// 0. Hardcoded Admin Check (Bypasses DB)
+if ($email === 'admin@heritx.com' && $password === 'admin123') {
+    echo json_encode([
+        "status" => "success", 
+        "message" => "Admin Login successful",
+        "user" => [
+            "id" => "admin_001",
+            "name" => "Super Admin",
+            "role" => "admin",
+            "email" => $email
+        ]
+    ]);
+    exit();
 }
+
+// 1. Check Users Table (Unified)
+$sql = "SELECT id, name, password, role, is_approved FROM users WHERE email = '$email'";
+$result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
     if (password_verify($password, $row['password'])) {
+        
+        // Approval Check
+        if ($row['is_approved'] == 0 && $row['role'] !== 'admin') {
+             echo json_encode(["status" => "error", "message" => "Your account is pending approval. Please check your email."]);
+             exit();
+        }
+
         // In a real app, you would generate a JWT token here
         echo json_encode([
             "status" => "success", 

@@ -395,3 +395,408 @@
 
 [2026-01-19 13:28:48] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1768825728_ner.webp
 [2026-01-19 13:28:48] Item inserted via Mysqli
+[2026-01-30 11:48:08] Request Received
+[2026-01-30 11:48:08] Array
+(
+    [owner_id] => 3
+    [name] => idakka
+    [category] => Ritual
+    [occasion] => Classical Dance
+    [quality] => Good
+    [quantity] => 3
+    [price] => 450
+    [deposit] => 150
+    [description] => idakaa is a ...
+)
+
+[2026-01-30 11:48:08] Array
+(
+    [image] => Array
+        (
+            [name] => Idakka-img.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\phpB3BE.tmp
+            [error] => 0
+            [size] => 85692
+        )
+
+)
+
+[2026-01-30 11:48:08] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1769770088_Idakka-img.webp
+[2026-01-30 11:48:08] Item inserted via Mysqli
+[2026-01-30 11:58:02] Request Received
+[2026-01-30 11:58:02] Array
+(
+    [owner_id] => 4
+    [name] => chenda
+    [category] => Ritual
+    [occasion] => Temple Ritual
+    [quality] => Good
+    [quantity] => 4
+    [price] => 1200
+    [deposit] => 300
+    [description] => theeee
+)
+
+[2026-01-30 11:58:02] Array
+(
+    [image] => Array
+        (
+            [name] => Chenda-img-1.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\phpC420.tmp
+            [error] => 0
+            [size] => 57028
+        )
+
+)
+
+[2026-01-30 11:58:02] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1769770682_Chenda-img-1.webp
+[2026-01-30 11:58:02] Database Error: Execute failed: Cannot add or update a child row: a foreign key constraint fails (`heritx`.`items`, CONSTRAINT `items_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `shopowners` (`id`) ON DELETE CASCADE)
+[2026-01-30 11:58:15] Request Received
+[2026-01-30 11:58:15] Array
+(
+    [owner_id] => 4
+    [name] => chenda
+    [category] => Ritual
+    [occasion] => Temple Ritual
+    [quality] => Good
+    [quantity] => 4
+    [price] => 1200
+    [deposit] => 300
+    [description] => theeee
+)
+
+[2026-01-30 11:58:15] Array
+(
+    [image] => Array
+        (
+            [name] => Chenda-img-1.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\phpF7D4.tmp
+            [error] => 0
+            [size] => 57028
+        )
+
+)
+
+[2026-01-30 11:58:15] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1769770695_Chenda-img-1.webp
+[2026-01-30 11:58:15] Database Error: Execute failed: Cannot add or update a child row: a foreign key constraint fails (`heritx`.`items`, CONSTRAINT `items_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `shopowners` (`id`) ON DELETE CASCADE)
+[2026-01-30 12:00:45] Request Received
+[2026-01-30 12:00:45] Array
+(
+    [owner_id] => 4
+    [name] => chenda
+    [category] => Ritual
+    [occasion] => Temple Ritual
+    [quality] => Good
+    [quantity] => 4
+    [price] => 1200
+    [deposit] => 300
+    [description] => theeee
+)
+
+[2026-01-30 12:00:45] Array
+(
+    [image] => Array
+        (
+            [name] => Chenda-img-1.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\php40CB.tmp
+            [error] => 0
+            [size] => 57028
+        )
+
+)
+
+[2026-01-30 12:00:45] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1769770845_Chenda-img-1.webp
+[2026-01-30 12:00:45] Item inserted via Mysqli
+[2026-01-31 16:17:30] Request Received
+[2026-01-31 16:17:30] Array
+(
+    [owner_id] => 1
+    [name] => Idakka
+    [category] => Jewelry
+    [occasion] => Temple Ritual
+    [quality] => Good
+    [quantity] => 4
+    [price] => 1200
+    [deposit] => 500
+    [description] => qeqeqwe
+)
+
+[2026-01-31 16:17:30] Array
+(
+    [image] => Array
+        (
+            [name] => Idakka-img.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\php4F1F.tmp
+            [error] => 0
+            [size] => 85692
+        )
+
+)
+
+[2026-01-31 16:17:30] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1769872650_Idakka-img.webp
+[2026-01-31 16:17:30] Item inserted via Mysqli
+[2026-02-01 17:58:14] Request Received
+[2026-02-01 17:58:14] Array
+(
+    [owner_id] => 11
+    [name] => Nilavilakku
+    [category] => Traditional Lamps
+    [occasion] => Temple Festival
+    [item_condition] => Used
+    [quantity] => 4
+    [price] => 1000
+    [deposit] => 1200
+    [description] => Nilavilakku is a traditional brass lamp widely used in Kerala for religious rituals, weddings, and cultural ceremonies. Lighting the Nilavilakku symbolizes prosperity, purity, and divine presence. It is an essential element in auspicious events and temple rituals.
+    [dos] => Light using traditional oil or ghee
+
+Handle carefully to avoid dents
+    [donts] => Do not use outdoors during rain
+
+Do not place on uneven surfaces
+)
+
+[2026-02-01 17:58:14] Array
+(
+    [image] => Array
+        (
+            [name] => brass lamb.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\phpBA3D.tmp
+            [error] => 0
+            [size] => 29660
+        )
+
+)
+
+[2026-02-01 17:58:14] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1769965094_brass lamb.webp
+[2026-02-01 17:58:14] Item inserted via Mysqli
+[2026-02-01 18:04:54] Request Received
+[2026-02-01 18:04:54] Array
+(
+    [owner_id] => 10
+    [name] => Chenda
+    [category] => Musical Instruments
+    [occasion] => Cultural Program
+    [item_condition] => New
+    [quantity] => 5
+    [price] => 3500
+    [deposit] => 3500
+    [description] => Chenda is a traditional percussion instrument of Kerala, commonly used in temple festivals and cultural performances. It produces powerful rhythmic beats and is a key part of traditional art forms like Chenda Melam.
+    [dos] => Use only with proper drumsticks
+
+Store in a dry place after use
+    [donts] => Do not expose to water
+
+Do not place heavy objects on it
+)
+
+[2026-02-01 18:04:54] Array
+(
+    [image] => Array
+        (
+            [name] => Chenda-img-1.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\phpD52C.tmp
+            [error] => 0
+            [size] => 57028
+        )
+
+)
+
+[2026-02-01 18:04:54] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1769965494_Chenda-img-1.webp
+[2026-02-01 18:04:54] Item inserted via Mysqli
+[2026-02-01 18:08:01] Request Received
+[2026-02-01 18:08:01] Array
+(
+    [owner_id] => 10
+    [name] => Kathakali Costume
+    [category] => Costumes
+    [occasion] => Kathakali Performance
+    [item_condition] => Used
+    [quantity] => 5
+    [price] => 5000
+    [deposit] => 5000
+    [description] => Kathakali costume is a traditional performance attire known for its elaborate makeup, vibrant colors, and detailed ornaments. It represents characters from classical stories and is used in Kathakali dance-drama performances.
+    [dos] => Wear with professional assistance
+
+Keep accessories safely packed
+    [donts] => Do not wash with water
+
+Do not mix costume parts carelessly
+)
+
+[2026-02-01 18:08:01] Array
+(
+    [image] => Array
+        (
+            [name] => 9b44ed_1e42ea3f2dc1483280650edf25eeb2dc~mv2.avif
+            [type] => image/avif
+            [tmp_name] => C:\xampp\tmp\phpAF37.tmp
+            [error] => 0
+            [size] => 91426
+        )
+
+)
+
+[2026-02-01 18:08:01] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1769965681_9b44ed_1e42ea3f2dc1483280650edf25eeb2dc~mv2.avif
+[2026-02-01 18:08:01] Item inserted via Mysqli
+[2026-02-01 18:16:11] Request Received
+[2026-02-01 18:16:11] Array
+(
+    [owner_id] => 10
+    [name] => Aranmula Kannadi
+    [category] => Ritual Items
+    [occasion] => Housewarming
+    [item_condition] => Good
+    [quantity] => 2
+    [price] => 500
+    [deposit] => 548
+    [description] => Aranmula Kannadi is a traditional metal mirror from Kerala, believed to bring prosperity and positive energy. It is commonly gifted during housewarming ceremonies and religious occasions.
+    [dos] => 
+    [donts] => 
+)
+
+[2026-02-01 18:16:11] Array
+(
+    [image] => Array
+        (
+            [name] => Aranmula Kannadi.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\php29A6.tmp
+            [error] => 0
+            [size] => 24864
+        )
+
+)
+
+[2026-02-01 18:16:11] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1769966171_Aranmula Kannadi.webp
+[2026-02-01 18:16:11] Item inserted via Mysqli
+[2026-02-01 18:22:29] Request Received
+[2026-02-01 18:22:29] Array
+(
+    [owner_id] => 10
+    [name] => Pulikali Costume
+    [category] => Costumes
+    [occasion] => Onam
+    [item_condition] => New
+    [quantity] => 10
+    [price] => 450
+    [deposit] => 498
+    [description] => Pulikali Costume
+    [dos] => 
+    [donts] => 
+)
+
+[2026-02-01 18:22:29] Array
+(
+    [image] => Array
+        (
+            [name] => Pulikali Costume.jpg
+            [type] => image/jpeg
+            [tmp_name] => C:\xampp\tmp\phpF0F6.tmp
+            [error] => 0
+            [size] => 63200
+        )
+
+)
+
+[2026-02-01 18:22:29] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1769966549_Pulikali Costume.jpg
+[2026-02-01 18:22:30] Item inserted via Mysqli
+[2026-02-01 18:26:41] Request Received
+[2026-02-01 18:26:41] Array
+(
+    [owner_id] => 10
+    [name] => Urumi
+    [category] => Musical Instruments
+    [occasion] => Temple Festival
+    [item_condition] => Used
+    [quantity] => 1
+    [price] => 1400
+    [deposit] => 1450
+    [description] => Urumi is a flexible percussion instrument known for its deep, resonant sound. It is often used in temple festivals and traditional percussion ensembles
+    [dos] => 
+    [donts] => 
+)
+
+[2026-02-01 18:26:41] Array
+(
+    [image] => Array
+        (
+            [name] => urumi.jpg
+            [type] => image/jpeg
+            [tmp_name] => C:\xampp\tmp\phpC85D.tmp
+            [error] => 0
+            [size] => 96954
+        )
+
+)
+
+[2026-02-01 18:26:41] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1769966801_urumi.jpg
+[2026-02-01 18:26:41] Item inserted via Mysqli
+[2026-02-02 05:54:19] Request Received
+[2026-02-02 05:54:19] Array
+(
+    [owner_id] => 11
+    [name] => Chengila
+    [category] => Musical Instruments
+    [occasion] => Temple Festival
+    [item_condition] => Used
+    [quantity] => 2
+    [price] => 500
+    [deposit] => 550
+    [description] => Chengila is a traditional percussion instrument made of metal, used to maintain rhythm during temple rituals and folk performances in Kerala.
+    [dos] => 
+    [donts] => 
+)
+
+[2026-02-02 05:54:19] Array
+(
+    [image] => Array
+        (
+            [name] => Chengila.jpg
+            [type] => image/jpeg
+            [tmp_name] => C:\xampp\tmp\php52E8.tmp
+            [error] => 0
+            [size] => 77811
+        )
+
+)
+
+[2026-02-02 05:54:19] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1770008059_Chengila.jpg
+[2026-02-02 05:54:19] Item inserted via Mysqli
+[2026-02-03 16:06:51] Request Received
+[2026-02-03 16:06:51] Array
+(
+    [owner_id] => 9
+    [name] => parisham mutt
+    [category] => Costumes
+    [occasion] => Temple Festival
+    [item_condition] => Good
+    [quantity] => 2
+    [price] => 1200
+    [deposit] => 1499
+    [description] => cwcwcqde2dewdeded3ed3ed3ddddwedwdwcwcw
+    [dos] => wqdw
+    [donts] => ewcwcw
+)
+
+[2026-02-03 16:06:51] Array
+(
+    [image] => Array
+        (
+            [name] => 9b44ed_e82710cbd11f47edbe1360f77c22b424~mv2.avif
+            [type] => image/avif
+            [tmp_name] => C:\xampp\tmp\php7330.tmp
+            [error] => 0
+            [size] => 67503
+        )
+
+)
+
+[2026-02-03 16:06:51] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1770131211_9b44ed_e82710cbd11f47edbe1360f77c22b424~mv2.avif
+[2026-02-03 16:06:51] Item inserted via Mysqli

@@ -17,6 +17,9 @@ interface Item {
   description: string;
   image_url: string;
   is_available: number;
+  is_approved: number;
+  dos?: string;
+  donts?: string;
 }
 
 interface Order {
@@ -149,6 +152,8 @@ interface NewItemState {
   price: string;
   deposit: string;
   description: string;
+  dos: string;
+  donts: string;
   image: File | null;
 }
 
@@ -181,7 +186,9 @@ const ShopOwnerDashboard = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editItemId, setEditItemId] = useState<number | null>(null);
   const [viewItem, setViewItem] = useState<Item | null>(null);
-  const [newItem, setNewItem] = useState<NewItemState>({ name: '', category: 'Attire', occasion: 'Onam', quality: 'Good', quantity: '1', price: '', deposit: '', description: '', image: null });
+  const [newItem, setNewItem] = useState<NewItemState>({ name: '', category: 'Attire', occasion: 'Onam', quality: 'Good', quantity: '1', price: '', deposit: '', description: '', dos: '', donts: '', image: null });
+  // Map quality to item_condition for backend
+  const itemCondition = newItem.quality; // Reusing quality field in state as 'item_condition' for now or rename it. Let's keep state simple but map on submit.
 
   // Popup State
   const [popup, setPopup] = useState<{ open: boolean, title: string, message: string, type: 'alert' | 'confirm', onConfirm?: () => void }>({
@@ -289,6 +296,8 @@ const ShopOwnerDashboard = () => {
       price: (item.price_per_day || 0).toString(),
       deposit: (item.deposit_amount || 0).toString(),
       description: item.description || '',
+      dos: item.dos || '',
+      donts: item.donts || '',
       image: null
     });
     setEditItemId(item.id);
@@ -338,16 +347,27 @@ const ShopOwnerDashboard = () => {
       return;
     }
 
+    // Validation Logic
+    if (newItem.name.length < 3) { triggerAlert('Validation Error', "Product Name must be at least 3 characters."); setLoading(false); return; }
+    if (parseInt(newItem.quantity) < 1) { triggerAlert('Validation Error', "Quantity must be at least 1."); setLoading(false); return; }
+    if (parseFloat(newItem.price) <= 0) { triggerAlert('Validation Error', "Daily Rent must be a positive number."); setLoading(false); return; }
+    if (parseFloat(newItem.deposit) < parseFloat(newItem.price)) { triggerAlert('Validation Error', "Deposit must be greater than or equal to Daily Rent."); setLoading(false); return; }
+    if (newItem.description.length < 10) { triggerAlert('Validation Error', "Description must be at least 10 characters."); setLoading(false); return; }
+    if (!newItem.image && !editItemId) { triggerAlert('Validation Error', "Please upload an image."); setLoading(false); return; }
+
     const formData = new FormData();
     formData.append('owner_id', user.id);
     formData.append('name', newItem.name);
     formData.append('category', newItem.category);
     formData.append('occasion', newItem.occasion);
-    formData.append('quality', newItem.quality);
+    formData.append('item_condition', newItem.quality); // Using quality state for item_condition
     formData.append('quantity', newItem.quantity);
     formData.append('price', newItem.price);
     formData.append('deposit', newItem.deposit);
+    formData.append('deposit', newItem.deposit);
     formData.append('description', newItem.description);
+    formData.append('dos', newItem.dos);
+    formData.append('donts', newItem.donts);
 
     if (newItem.image) {
       formData.append('image', newItem.image);
@@ -374,9 +394,9 @@ const ShopOwnerDashboard = () => {
       try {
         const data = JSON.parse(text);
         if (data.status === 'success') {
-          triggerAlert('Success', editItemId ? 'Item updated successfully!' : 'Item added successfully!');
+          triggerAlert('Success', editItemId ? 'Item updated successfully!' : 'Item submitted successfully. It is now Pending Review.');
           setShowAddModal(false);
-          setNewItem({ name: '', category: 'Attire', occasion: 'Onam', quality: 'Good', quantity: '1', price: '', deposit: '', description: '', image: null });
+          setNewItem({ name: '', category: 'Attire', occasion: 'Onam', quality: 'Good', quantity: '1', price: '', deposit: '', description: '', dos: '', donts: '', image: null });
           setEditItemId(null);
           if (user?.id) fetchRealData(user.id);
         } else {
@@ -448,7 +468,7 @@ const ShopOwnerDashboard = () => {
   };
 
   const stats = calculateStats();
-  const handleLogout = () => { logout(); window.location.href = 'http://localhost:3000'; };
+  const handleLogout = () => { logout(); window.location.href = 'http://127.0.0.1:3000'; };
 
   // Modern Skeleton
   const SkeletonLoader = () => (
@@ -514,9 +534,31 @@ const ShopOwnerDashboard = () => {
                           </td>
                           <td>{item.category}</td>
                           <td><span style={{ fontSize: '0.85em', color: '#64748b' }}>{item.occasion}</span></td>
-                          <td>{item.quantity || 1}</td>
+                          <td>
+                            {item.quantity || 1}
+                            {parseInt(String(item.quantity || 1)) < 3 && (
+                              <span style={{
+                                fontSize: '0.7em', background: '#fee2e2', color: '#dc2626',
+                                padding: '2px 6px', borderRadius: '4px', marginLeft: '8px',
+                                fontWeight: 'bold', border: '1px solid #fca5a5'
+                              }}>
+                                Low Stock
+                              </span>
+                            )}
+                          </td>
                           <td>₹{item.price_per_day}</td>
-                          <td><span className={`badge ${item.is_available == 1 ? 'success' : 'warning'}`}>{item.is_available == 1 ? 'Active' : 'Unavailable'}</span></td>
+                          <td>
+                            {item.is_approved == 0 ? (
+                              <span style={{
+                                fontSize: '0.85em', background: '#fef3c7', color: '#d97706',
+                                padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold'
+                              }}>
+                                Pending
+                              </span>
+                            ) : (
+                              <span className={`badge ${item.is_available == 1 ? 'success' : 'warning'}`}>{item.is_available == 1 ? 'Active' : 'Unavailable'}</span>
+                            )}
+                          </td>
                           <td>
                             <button className="btn btn-outline btn-sm" onClick={() => handleEdit(item)} style={{ marginRight: 5 }}>Edit</button>
                             <button className="btn btn-outline btn-sm" onClick={() => setViewItem(item)} style={{ marginRight: 5 }}>View</button>
@@ -555,7 +597,7 @@ const ShopOwnerDashboard = () => {
                 >
                   <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', padding: '20px 25px' }}>
                     <h3 style={{ margin: 0, fontSize: '1.25rem' }}>{editItemId ? 'Edit Item' : 'Add New Item'}</h3>
-                    <button onClick={() => { setShowAddModal(false); setEditItemId(null); setNewItem({ name: '', category: 'Attire', occasion: 'Onam', quality: 'Good', quantity: '1', price: '', deposit: '', description: '', image: null }); }} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', lineHeight: 1 }}>&times;</button>
+                    <button onClick={() => { setShowAddModal(false); setEditItemId(null); setNewItem({ name: '', category: 'Attire', occasion: 'Onam', quality: 'Good', quantity: '1', price: '', deposit: '', description: '', dos: '', donts: '', image: null }); }} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', lineHeight: 1 }}>&times;</button>
                   </div>
                   <div className="card-body" style={{ padding: 25 }}>
                     {/* Changed form to div to prevent default submit issues and use explicit onClick */}
@@ -570,10 +612,15 @@ const ShopOwnerDashboard = () => {
                           <select value={newItem.category} onChange={e => setNewItem({ ...newItem, category: e.target.value })}
                             style={{ padding: 12, border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', width: '100%' }}>
                             <option value="Attire">Attire</option>
-                            <option value="Decor">Decor</option>
-                            <option value="Jewelry">Jewelry</option>
-                            <option value="Art">Art</option>
-                            <option value="Ritual">Ritual</option>
+                            <option value="Jewellery">Jewellery</option>
+                            <option value="Musical Instruments">Musical Instruments</option>
+                            <option value="Ritual Items">Ritual Items</option>
+                            <option value="Decorations">Decorations</option>
+                            <option value="Traditional Lamps">Traditional Lamps</option>
+                            <option value="Costumes">Costumes</option>
+                            <option value="Headgear & Accessories">Headgear & Accessories</option>
+                            <option value="Art & Performance Props">Art & Performance Props</option>
+                            <option value="Festival Essentials">Festival Essentials</option>
                           </select>
                         </div>
                         <div className="field" style={{ flex: 1 }}>
@@ -582,12 +629,25 @@ const ShopOwnerDashboard = () => {
                             style={{ padding: 12, border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', width: '100%' }}>
                             <option value="Onam">Onam</option>
                             <option value="Vishu">Vishu</option>
-                            <option value="Wedding">Wedding</option>
-                            <option value="Temple Ritual">Temple Ritual</option>
-                            <option value="Classical Dance">Classical Dance</option>
-                            <option value="House Warming">House Warming</option>
+                            <option value="Temple Festival">Temple Festival</option>
+                            <option value="Wedding Ceremony">Wedding Ceremony</option>
+                            <option value="Housewarming">Housewarming (Grihapravesham)</option>
+                            <option value="Kathakali Performance">Kathakali Performance</option>
+                            <option value="Mohiniyattam Performance">Mohiniyattam Performance</option>
+                            <option value="Cultural Program">Cultural Program</option>
+                            <option value="Traditional Ritual">Traditional Ritual</option>
+                            <option value="Annual Festival">Annual Festival / Utsavam</option>
                           </select>
                         </div>
+                      </div>
+                      <div className="field">
+                        <span>Item Condition</span>
+                        <select value={newItem.quality} onChange={e => setNewItem({ ...newItem, quality: e.target.value })}
+                          style={{ padding: 12, border: '1px solid var(--border-light)', borderRadius: 'var(--radius-md)', width: '100%' }}>
+                          <option value="New">New</option>
+                          <option value="Good">Good</option>
+                          <option value="Used">Used</option>
+                        </select>
                       </div>
                       <div style={{ display: 'flex', gap: 10 }}>
                         <div className="field" style={{ flex: 1 }}>
@@ -628,97 +688,153 @@ const ShopOwnerDashboard = () => {
                       </div>
                       <div className="field">
                         <span>Value Description</span>
-                        <input placeholder="Short description of item..." value={newItem.description} onChange={e => setNewItem({ ...newItem, description: e.target.value })} />
+                        <textarea
+                          placeholder="Detailed description of the item..."
+                          value={newItem.description}
+                          onChange={e => setNewItem({ ...newItem, description: e.target.value })}
+                          rows={4}
+                          style={{
+                            resize: 'vertical',
+                            width: '100%',
+                            padding: '10px',
+                            border: '1px solid var(--border-light)',
+                            borderRadius: 'var(--radius-md)'
+                          }}
+                        />
                       </div>
-                      <div className="field">
-                        <span>Upload Image</span>
-                        <input type="file" accept="image/*" onChange={e => setNewItem({ ...newItem, image: e.target.files[0] })}
-                          style={{ border: 'none', padding: 0 }} />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleAddItem}
-                        className="btn btn-primary"
-                        style={{ marginTop: 10, opacity: loading ? 0.7 : 1 }}
-                        disabled={loading}
-                      >
-                        {loading ? 'Processing...' : (editItemId ? 'Save Changes' : 'Publish Listing')}
-                      </button>
                     </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            {/* View Details Modal */}
-            {viewItem && (
-              <div style={{
-                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-                background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
-                display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
-              }}>
-                <div className="modern-card" style={{ width: 450, padding: 0, overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
-                  <div style={{ position: 'relative', height: 250, background: '#f8fafc' }}>
-                    <img
-                      src={viewItem.image_url ? `http://localhost/HertiX/user-dashboard/frontend/public/${viewItem.image_url}` : 'https://via.placeholder.com/300'}
-                      alt={viewItem.name}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://via.placeholder.com/300' }}
-                    />
+                    <div style={{ display: 'flex', gap: 16 }}>
+                      <div className="field" style={{ flex: 1 }}>
+                        <span style={{ color: '#15803d', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span>✅</span> Do's (Optional)
+                        </span>
+                        <textarea
+                          placeholder="e.g. Clean slowly&#10;Keep dry"
+                          value={newItem.dos}
+                          onChange={e => setNewItem({ ...newItem, dos: e.target.value })}
+                          rows={4}
+                          style={{
+                            resize: 'vertical',
+                            border: '1px solid #bbf7d0',
+                            background: '#f0fdf4',
+                            width: '100%',
+                            padding: '10px',
+                            borderRadius: 'var(--radius-md)'
+                          }}
+                        />
+                      </div>
+                      <div className="field" style={{ flex: 1 }}>
+                        <span style={{ color: '#b91c1c', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span>❌</span> Don'ts (Optional)
+                        </span>
+                        <textarea
+                          placeholder="e.g. No bleach&#10;Avoid water"
+                          value={newItem.donts}
+                          onChange={e => setNewItem({ ...newItem, donts: e.target.value })}
+                          rows={4}
+                          style={{
+                            resize: 'vertical',
+                            border: '1px solid #fecaca',
+                            background: '#fef2f2',
+                            width: '100%',
+                            padding: '10px',
+                            borderRadius: 'var(--radius-md)'
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="field">
+                      <span>Upload Image</span>
+                      <input type="file" accept="image/*" onChange={e => setNewItem({ ...newItem, image: e.target.files[0] })}
+                        style={{ border: 'none', padding: 0 }} />
+                    </div>
                     <button
-                      onClick={() => setViewItem(null)}
-                      style={{
-                        position: 'absolute', top: 15, right: 15,
-                        background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%',
-                        width: 36, height: 36, fontSize: '1.2rem', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                      }}
+                      type="button"
+                      onClick={handleAddItem}
+                      className="btn btn-primary"
+                      style={{ marginTop: 10, opacity: loading ? 0.7 : 1 }}
+                      disabled={loading}
                     >
-                      &times;
+                      {loading ? 'Processing...' : (editItemId ? 'Save Changes' : 'Publish Listing')}
                     </button>
-                    <div style={{
-                      position: 'absolute', bottom: 0, left: 0, right: 0,
-                      background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
-                      padding: '20px 20px 15px', color: 'white'
-                    }}>
-                      <h3 style={{ margin: 0, fontSize: '1.4rem' }}>{viewItem.name}</h3>
-                      <span className="badge" style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', marginTop: 8 }}>
-                        {viewItem.category}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="card-body" style={{ padding: 25 }}>
-                    <div className="grid-layout" style={{ gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                      <div>
-                        <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#64748b', fontWeight: 600 }}>Price per Day</label>
-                        <div style={{ fontSize: '1.25rem', color: 'var(--primary)', fontWeight: 700 }}>₹{viewItem.price_per_day}</div>
-                      </div>
-                      <div>
-                        <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#64748b', fontWeight: 600 }}>Security Deposit</label>
-                        <div style={{ fontSize: '1.25rem', color: '#334155', fontWeight: 600 }}>₹{viewItem.deposit_amount}</div>
-                      </div>
-                      <div>
-                        <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#64748b', fontWeight: 600 }}>Occasion</label>
-                        <div style={{ fontSize: '1rem', color: '#334155' }}>{viewItem.occasion}</div>
-                      </div>
-                      <div>
-                        <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#64748b', fontWeight: 600 }}>Available Qty</label>
-                        <div style={{ fontSize: '1rem', color: '#334155' }}>{viewItem.quantity || 1} units</div>
-                      </div>
-                    </div>
-
-                    <div style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #f1f5f9' }}>
-                      <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#64748b', fontWeight: 600 }}>Description</label>
-                      <p style={{ margin: '8px 0 0', color: '#475569', lineHeight: 1.6, fontSize: '0.95rem' }}>
-                        {viewItem.description || 'No detailed description available for this item.'}
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+
+            )
+            }
+            {/* View Details Modal */}
+            {
+              viewItem && (
+                <div style={{
+                  position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                  background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+                  display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+                }}>
+                  <div className="modern-card" style={{ width: 450, padding: 0, overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+                    <div style={{ position: 'relative', height: 250, background: '#f8fafc' }}>
+                      <img
+                        src={viewItem.image_url ? `http://localhost/HertiX/user-dashboard/frontend/public/${viewItem.image_url}` : 'https://via.placeholder.com/300'}
+                        alt={viewItem.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://via.placeholder.com/300' }}
+                      />
+                      <button
+                        onClick={() => setViewItem(null)}
+                        style={{
+                          position: 'absolute', top: 15, right: 15,
+                          background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%',
+                          width: 36, height: 36, fontSize: '1.2rem', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                        }}
+                      >
+                        &times;
+                      </button>
+                      <div style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0,
+                        background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+                        padding: '20px 20px 15px', color: 'white'
+                      }}>
+                        <h3 style={{ margin: 0, fontSize: '1.4rem' }}>{viewItem.name}</h3>
+                        <span className="badge" style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', marginTop: 8 }}>
+                          {viewItem.category}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="card-body" style={{ padding: 25 }}>
+                      <div className="grid-layout" style={{ gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                        <div>
+                          <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#64748b', fontWeight: 600 }}>Price per Day</label>
+                          <div style={{ fontSize: '1.25rem', color: 'var(--primary)', fontWeight: 700 }}>₹{viewItem.price_per_day}</div>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#64748b', fontWeight: 600 }}>Security Deposit</label>
+                          <div style={{ fontSize: '1.25rem', color: '#334155', fontWeight: 600 }}>₹{viewItem.deposit_amount}</div>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#64748b', fontWeight: 600 }}>Occasion</label>
+                          <div style={{ fontSize: '1rem', color: '#334155' }}>{viewItem.occasion}</div>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#64748b', fontWeight: 600 }}>Available Qty</label>
+                          <div style={{ fontSize: '1rem', color: '#334155' }}>{viewItem.quantity || 1} units</div>
+                        </div>
+                      </div>
+
+                      <div style={{ marginTop: 20, paddingTop: 20, borderTop: '1px solid #f1f5f9' }}>
+                        <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: '#64748b', fontWeight: 600 }}>Description</label>
+                        <p style={{ margin: '8px 0 0', color: '#475569', lineHeight: 1.6, fontSize: '0.95rem' }}>
+                          {viewItem.description || 'No detailed description available for this item.'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+          </div >
         );
 
 

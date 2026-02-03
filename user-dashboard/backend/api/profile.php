@@ -17,8 +17,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $data = $_POST;
     }
 
-    // In production, get ID from Session. For MVP:
-    $target_id = 1; 
+    // Get User ID from Request (POST or GET)
+    $target_id = $_REQUEST['user_id'] ?? $_REQUEST['id'] ?? null;
+
+    if (!$target_id) {
+        echo json_encode(["success" => false, "message" => "User ID is required"]);
+        exit;
+    } 
 
     $name = $data['name'] ?? '';
     $phone = $data['phone'] ?? '';
@@ -27,6 +32,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $gender = $data['gender'] ?? '';
     $dob = $data['dob'] ?? '';
     $bio = $data['bio'] ?? '';
+
+    // Handle Password Change Action
+    if (isset($_GET['action']) && $_GET['action'] === 'change_password') {
+        $currentPassword = $data['current_password'] ?? '';
+        $newPassword = $data['new_password'] ?? '';
+
+        // Validation
+        if (empty($currentPassword) || empty($newPassword)) {
+            echo json_encode(["success" => false, "message" => "All password fields are required"]);
+            exit;
+        }
+
+        // Complexity Validation
+        if (strlen($newPassword) < 8) {
+            echo json_encode(["success" => false, "message" => "New password must be at least 8 characters"]);
+            exit;
+        }
+        if (!preg_match('/[A-Z]/', $newPassword)) {
+            echo json_encode(["success" => false, "message" => "New password must contain at least one uppercase letter"]);
+            exit;
+        }
+        if (!preg_match('/[a-z]/', $newPassword)) {
+            echo json_encode(["success" => false, "message" => "New password must contain at least one lowercase letter"]);
+            exit;
+        }
+
+        // Check current password
+        $stmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
+        $stmt->bind_param("i", $target_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $userRow = $result->fetch_assoc();
+
+        if ($userRow && password_verify($currentPassword, $userRow['password'])) {
+            $hashedNew = password_hash($newPassword, PASSWORD_DEFAULT);
+            $upd = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+            $upd->bind_param("si", $hashedNew, $target_id);
+            if ($upd->execute()) {
+                echo json_encode(["success" => true, "message" => "Password updated successfully"]);
+            } else {
+                echo json_encode(["success" => false, "message" => "Failed to update password"]);
+            }
+            $upd->close();
+        } else {
+            echo json_encode(["success" => false, "message" => "Current password is incorrect"]);
+        }
+        $stmt->close();
+        exit;
+    }
     
     // Handle Image Upload
     $imagePath = null;
@@ -60,8 +114,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->close();
 } else {
     // Get Profile
-    $target_id = 1; 
-    $stmt = $conn->prepare("SELECT id, name, email, phone, address, location, gender, dob, bio, profile_image, role FROM users WHERE id = ?");
+    // target_id is already set from above request check
+    if (!$target_id) {
+         $target_id = $_GET['user_id'] ?? null;
+         if (!$target_id) {
+            echo json_encode(["error" => "User ID is required"]);
+            exit;
+         }
+    } 
+    $stmt = $conn->prepare("SELECT id, name, email, phone, address, location, gender, dob, bio, profile_image, role, created_at FROM users WHERE id = ?");
     $stmt->bind_param("i", $target_id);
     $stmt->execute();
     $result = $stmt->get_result();

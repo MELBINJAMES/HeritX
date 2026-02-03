@@ -1,0 +1,9 @@
+/* Navbar Styles */
+.navbar {
+    /* Layout handles inline, adding defaults here */
+    width: 100%;
+}
+
+.desktop-menu a:hover {
+    color: #e91e63 !important;
+}

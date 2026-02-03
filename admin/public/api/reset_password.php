@@ -10,7 +10,23 @@ if (!isset($data->email) || !isset($data->otp) || !isset($data->password)) {
 
 $email = $conn->real_escape_string($data->email);
 $otp = $conn->real_escape_string($data->otp);
-$password = password_hash($data->password, PASSWORD_DEFAULT);
+$rawPassword = $data->password;
+
+// Password Complexity Validation
+if (strlen($rawPassword) < 8) {
+    echo json_encode(["status" => "error", "message" => "Password must be at least 8 characters"]);
+    exit();
+}
+if (!preg_match('/[A-Z]/', $rawPassword)) {
+    echo json_encode(["status" => "error", "message" => "Password must contain at least one uppercase letter"]);
+    exit();
+}
+if (!preg_match('/[a-z]/', $rawPassword)) {
+    echo json_encode(["status" => "error", "message" => "Password must contain at least one lowercase letter"]);
+    exit();
+}
+
+$password = password_hash($rawPassword, PASSWORD_DEFAULT);
 $now = date("Y-m-d H:i:s");
 
 // Verify OTP again before resetting

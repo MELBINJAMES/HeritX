@@ -44,10 +44,36 @@ $owner_id = intval($_POST['owner_id']);
 $name = $_POST['name'] ?? 'Untitled Item';
 $category = $_POST['category'] ?? 'General';
 $occasion = $_POST['occasion'] ?? 'General';
-$quality = $_POST['quality'] ?? 'Good';
+$item_condition = $_POST['item_condition'] ?? 'Good';
+$quality = $item_condition; 
 $price = floatval($_POST['price'] ?? 0);
 $deposit = floatval($_POST['deposit'] ?? 0);
 $description = $_POST['description'] ?? '';
+$dos = $_POST['dos'] ?? '';
+$donts = $_POST['donts'] ?? '';
+$quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
+
+// Server-side Validation
+if (strlen($name) < 3) {
+    echo json_encode(["status" => "error", "message" => "Product Name must be at least 3 characters"]);
+    exit;
+}
+if ($quantity < 1) {
+    echo json_encode(["status" => "error", "message" => "Quantity must be at least 1"]);
+    exit;
+}
+if ($price <= 0) {
+    echo json_encode(["status" => "error", "message" => "Daily Rent must be positive"]);
+    exit;
+}
+if ($deposit < $price) {
+    echo json_encode(["status" => "error", "message" => "Deposit amount must be equal to or greater than Daily Rent"]);
+    exit;
+}
+if (strlen($description) < 10) {
+    echo json_encode(["status" => "error", "message" => "Description must be at least 10 characters"]);
+    exit;
+}
 
 // Handle Image Upload
 $image_url = '';
@@ -75,29 +101,27 @@ if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
         exit;
     }
 } else {
-    $image_url = 'default_item.png'; 
-    debug_log("No file uploaded or error: " . ($_FILES['image']['error'] ?? 'Unset'));
+    // Basic validation requires image for new items
+    echo json_encode(["status" => "error", "message" => "Image is required"]);
+    exit;
 }
 
 // Database Insert
 try {
-    // Check if $conn exists (mysqli) from db.php
     global $conn;
     
-    // Capture quantity
-    $quantity = isset($_POST['quantity']) ? intval($_POST['quantity']) : 1;
-
     if (isset($conn) && $conn instanceof mysqli) {
-        $stmt = $conn->prepare("INSERT INTO items (owner_id, name, category, quality, quantity, price_per_day, deposit_amount, description, image_url, occasion, is_available) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)");
+        // Insert into item_condition instead of quality, and is_approved = 0 (Pending)
+        $stmt = $conn->prepare("INSERT INTO items (owner_id, name, category, item_condition, quantity, price_per_day, deposit_amount, description, image_url, occasion, is_available, is_approved, dos, donts) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, ?, ?)");
         if (!$stmt) {
              throw new Exception("Prepare failed: " . $conn->error);
         }
-        // Correct types: i (owner), s (name), s (cat), s (quality), i (quantity), d (price), d (deposit), s (desc), s (img), s (occasion)
-        $stmt->bind_param("isssiddsss", $owner_id, $name, $category, $quality, $quantity, $price, $deposit, $description, $image_url, $occasion);
+        // types: i (owner), s (name), s (cat), s (cond), i (qty), d (price), d (dep), s (desc), s (img), s (occasion), s (dos), s (donts)
+        $stmt->bind_param("isssiddsssss", $owner_id, $name, $category, $item_condition, $quantity, $price, $deposit, $description, $image_url, $occasion, $dos, $donts);
         
         if ($stmt->execute()) {
             debug_log("Item inserted via Mysqli");
-            echo json_encode(["status" => "success", "message" => "Item added successfully"]);
+            echo json_encode(["status" => "success", "message" => "Item submitted successfully"]);
         } else {
              throw new Exception("Execute failed: " . $stmt->error);
         }

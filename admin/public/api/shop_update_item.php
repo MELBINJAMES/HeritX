@@ -40,12 +40,14 @@ $quantity = intval($_POST['quantity'] ?? 1);
 $price = floatval($_POST['price'] ?? 0);
 $deposit = floatval($_POST['deposit'] ?? 0);
 $description = $_POST['description'] ?? '';
+$dos = $_POST['dos'] ?? '';
+$donts = $_POST['donts'] ?? '';
 
 // Image Upload Logic
 $image_clause = "";
-// name, category, quality, quantity, price, deposit, description, occasion, owner_id, item_id
-$bind_types = "sssiddssii"; 
-$bind_params = [$name, $category, $quality, $quantity, $price, $deposit, $description, $occasion, $owner_id, $item_id];
+// name, category, quality, quantity, price, deposit, description, dos, donts, occasion, owner_id, item_id
+$bind_types = "sssiddssssii"; 
+$bind_params = [$name, $category, $quality, $quantity, $price, $deposit, $description, $dos, $donts, $occasion, $owner_id, $item_id];
 
 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
     $uploadDir = __DIR__ . '/../../../user-dashboard/frontend/public/uploads/';
@@ -59,15 +61,15 @@ if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
         $image_clause = ", image_url = ?";
         
         // Insert image_url into bind params before IDs
-        // New order: name, category, quality, quantity, price, deposit, description, image_url, occasion, owner_id, item_id
-        $bind_types = "sssiddsssii"; 
-        array_splice($bind_params, 7, 0, $image_url);
+        // New order: name, category, quality, quantity, price, deposit, description, dos, donts, image_url, occasion, owner_id, item_id
+        $bind_types = "sssiddsssssii"; 
+        array_splice($bind_params, 9, 0, $image_url);
     }
 }
 
 // Update Query
 // Verify ownership first implicitly by WHERE clause
-$sql = "UPDATE items SET name=?, category=?, quality=?, quantity=?, price_per_day=?, deposit_amount=?, description=? $image_clause, occasion=? WHERE owner_id=? AND id=?";
+$sql = "UPDATE items SET name=?, category=?, quality=?, quantity=?, price_per_day=?, deposit_amount=?, description=?, dos=?, donts=? $image_clause, occasion=? WHERE owner_id=? AND id=?";
 
 if (isset($conn) && $conn instanceof mysqli) {
     $stmt = $conn->prepare($sql);

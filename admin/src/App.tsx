@@ -5,7 +5,9 @@ import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import ShopOwnerDashboard from './pages/ShopOwnerDashboard'
 import FinderDashboard from './pages/FinderDashboard'
+import AdminDashboard from './pages/AdminDashboard'
 import { AuthProvider } from './context/AuthContext'
+import ErrorBoundary from './components/ErrorBoundary'
 
 const App = () => {
   return (
@@ -21,13 +23,16 @@ const App = () => {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/shop-owner/dashboard" element={<ShopOwnerDashboard />} />
           <Route path="/finder/dashboard" element={<FinderDashboard />} />
+          <Route path="/admin/dashboard" element={
+            <ErrorBoundary>
+              <AdminDashboard />
+            </ErrorBoundary>
+          } />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
-
   )
 }
 
 export default App
-

@@ -1,0 +1,47 @@
+--- EMAIL SENT [2026-02-01 16:27:31] ---
+To: melbinjames0011@gmail.com
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear Ajas Rentas,
+
+Your shop registration has been approved on 2026-02-01 16:27:29. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+
+--- EMAIL SENT [2026-02-01 16:44:08] ---
+To: melbinjames267@gmail.com
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear Boutique,
+
+Your shop registration has been approved on 2026-02-01 16:44:06. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+
+--- FORGOT PASSWORD EMAIL [2026-02-02 05:26:13] ---
+To: melbinjames1212@gmail.com
+Subject: HertiX - Password Reset Code
+Code: 632795
+----------------------------------
+
+--- FORGOT PASSWORD EMAIL [2026-02-02 05:29:14] ---
+To: melbinjames1212@gmail.com
+Status: SMTP Sent
+Code: 502702
+----------------------------------
+
+--- FORGOT PASSWORD EMAIL [2026-02-02 05:33:20] ---
+To: melbinjames267@gmail.com
+Status: SMTP Sent
+Code: 212788
+----------------------------------
+
+--- CUSTOM EMAIL SENT [2026-02-03 14:02:01] ---
+To: melbinjames267@gmail.com
+Subject: Important: Regarding your HeritX Shop
+Message:
+..
+--------------------------------------
+

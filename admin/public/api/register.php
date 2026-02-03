@@ -1,40 +1,91 @@
 <?php
 include 'db.php';
 
-$data = json_decode(file_get_contents("php://input"));
+$email = '';
+$fullName = '';
+$role = 'Finder';
+$rawPassword = '';
+$shopAddress = '';
+$shopCity = '';
+$shopPhone = '';
+$proofPath = '';
 
-if (!isset($data->email) || !isset($data->password)) {
-    echo json_encode(["status" => "error", "message" => "Email, Full Name and Password are required"]);
+// Check for JSON or FormData
+$jsonData = json_decode(file_get_contents("php://input"));
+if ($jsonData) {
+    $email = $conn->real_escape_string($jsonData->email);
+    $fullName = isset($jsonData->full_name) ? $conn->real_escape_string($jsonData->full_name) : '';
+    $role = isset($jsonData->role) ? $conn->real_escape_string($jsonData->role) : 'Finder';
+    $rawPassword = $jsonData->password;
+} else {
+    // FormData
+    $email = isset($_POST['email']) ? $conn->real_escape_string($_POST['email']) : '';
+    $fullName = isset($_POST['full_name']) ? $conn->real_escape_string($_POST['full_name']) : '';
+    $role = isset($_POST['role']) ? $conn->real_escape_string($_POST['role']) : 'Finder';
+    $rawPassword = isset($_POST['password']) ? $_POST['password'] : '';
+    $shopAddress = isset($_POST['shop_address']) ? $conn->real_escape_string($_POST['shop_address']) : '';
+    $shopCity = isset($_POST['shop_city']) ? $conn->real_escape_string($_POST['shop_city']) : '';
+    $shopPhone = isset($_POST['shop_phone']) ? $conn->real_escape_string($_POST['shop_phone']) : '';
+
+    // File Upload Handler
+    if (isset($_FILES['proof_doc']) && $_FILES['proof_doc']['error'] == 0) {
+        $targetDir = "../uploads/proofs/";
+        if (!file_exists($targetDir)) mkdir($targetDir, 0777, true);
+        
+        $fileName = time() . '_' . basename($_FILES['proof_doc']['name']);
+        $targetFile = $targetDir . $fileName;
+        $fileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+        
+        // Simple check for image types
+        if (in_array($fileType, ['jpg', 'png', 'jpeg', 'pdf'])) {
+            if (move_uploaded_file($_FILES['proof_doc']['tmp_name'], $targetFile)) {
+                $proofPath = "uploads/proofs/" . $fileName;
+            }
+        }
+    }
+}
+
+if (empty($email) || empty($rawPassword)) {
+    echo json_encode(["status" => "error", "message" => "Email and Password are required"]);
     exit();
 }
 
-$email = $conn->real_escape_string($data->email);
-$fullName = isset($data->full_name) ? $conn->real_escape_string($data->full_name) : '';
-$role = isset($data->role) ? $conn->real_escape_string($data->role) : 'Finder';
-$rawPassword = $data->password;
-
-// Password Validation
-if (strlen($rawPassword) < 8 || !preg_match("/[A-Z]/", $rawPassword) || !preg_match("/[a-z]/", $rawPassword)) {
-    echo json_encode(["status" => "error", "message" => "Password must be at least 8 characters long, include an uppercase letter and a lowercase letter."]);
+// Password Complexity Validation
+if (strlen($rawPassword) < 8) {
+    echo json_encode(["status" => "error", "message" => "Password must be at least 8 characters"]);
+    exit();
+}
+if (!preg_match('/[A-Z]/', $rawPassword)) {
+    echo json_encode(["status" => "error", "message" => "Password must contain at least one uppercase letter"]);
+    exit();
+}
+if (!preg_match('/[a-z]/', $rawPassword)) {
+    echo json_encode(["status" => "error", "message" => "Password must contain at least one lowercase letter"]);
     exit();
 }
 
 $password = password_hash($rawPassword, PASSWORD_DEFAULT);
 
 // Check if email already exists
-$table = ($role === 'Shop Owner' || $role === 'Owner') ? 'shopowners' : 'users';
+$table = 'users'; // UNIFIED TABLE: Always use users table for both Finders and Shop Owners
 
 $check_sql = "SELECT id FROM $table WHERE email = '$email'";
 $result = $conn->query($check_sql);
 
 if ($result->num_rows > 0) {
-    echo json_encode(["status" => "error", "message" => "Email already registered in $table. Please login."]);
+    echo json_encode(["status" => "error", "message" => "Email already registered. Please login."]);
 } else {
     // Insert into respective table
-    $sql = "INSERT INTO $table (email, name, password, role) VALUES ('$email', '$fullName', '$password', '$role')";
+    // Updated INSERT to include new shop columns and approval status
+    $is_approved = ($role === 'Shop Owner') ? 0 : 1;
+    $sql = "INSERT INTO $table (email, name, password, role, shop_address, shop_city, shop_phone, shop_proof, is_approved) VALUES ('$email', '$fullName', '$password', '$role', '$shopAddress', '$shopCity', '$shopPhone', '$proofPath', '$is_approved')";
     
     if ($conn->query($sql) === TRUE) {
-        echo json_encode(["status" => "success", "message" => "Account created successfully in $table!"]);
+        $msg = "Account created successfully!";
+        if ($role === 'Shop Owner') {
+            $msg .= " Your shop is pending verification.";
+        }
+        echo json_encode(["status" => "success", "message" => $msg]);
     } else {
         echo json_encode(["status" => "error", "message" => "Error: " . $conn->error]);
     }

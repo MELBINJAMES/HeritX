@@ -37,10 +37,43 @@ if ($result->num_rows > 0) {
     $update_sql = "UPDATE users SET reset_token = '$otp', reset_token_expiry = '$expiry' WHERE email = '$email'";
     
     if ($conn->query($update_sql) === TRUE) {
+        
+        $subject = 'HertiX - Password Reset Code';
+        $body = "
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px; }
+                    .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+                    .code { background: #e0e6ed; padding: 15px; font-size: 24px; font-weight: bold; text-align: center; letter-spacing: 5px; border-radius: 4px; margin: 20px 0; }
+                </style>
+            </head>
+            <body>
+                <div class='container'>
+                    <h2>Password Reset Request</h2>
+                    <p>Hi $full_name,</p>
+                    <p>You requested to reset your password. Use the verification code below:</p>
+                    <div class='code'>$otp</div>
+                    <p>This code will expire in 15 minutes.</p>
+                    <p>If you didn't request this, you can safely ignore this email.</p>
+                    <br>
+                    <p>Best regards,<br>The HertiX Team</p>
+                </div>
+            </body>
+            </html>
+        ";
+
+        // Send via PHPMailer
         $mail = new PHPMailer(true);
+        $emailStatus = "";
+        
+        // Define headers for fallback mail()
+        $headers = "MIME-Version: 1.0" . "\r\n";
+        $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+        $headers .= "From: no-reply@hertix.com" . "\r\n";
 
         try {
-            //Server settings
+            // Server settings
             $mail->isSMTP();
             $mail->Host       = SMTP_HOST;
             $mail->SMTPAuth   = true;
@@ -49,37 +82,30 @@ if ($result->num_rows > 0) {
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = SMTP_PORT;
 
-            //Recipients
+            // Recipients
             $mail->setFrom(SMTP_FROM_EMAIL, SMTP_FROM_NAME);
             $mail->addAddress($email, $full_name);
 
-            //Content
+            // Content
             $mail->isHTML(true);
-            $mail->Subject = 'HertiX - Password Reset Code';
-            $mail->Body    = "
-                <div style='font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;'>
-                    <div style='max-width: 600px; margin: 0 auto; background-color: white; padding: 20px; border-radius: 8px;'>
-                        <h2 style='color: #2c3e50;'>Password Reset Request</h2>
-                        <p>Hi $full_name,</p>
-                        <p>You requested to reset your password. Use the verification code below:</p>
-                        <div style='background-color: #e0e6ed; padding: 15px; text-align: center; font-size: 24px; letter-spacing: 5px; font-weight: bold; border-radius: 4px; margin: 20px 0;'>
-                            $otp
-                        </div>
-                        <p>This code will expire in 15 minutes.</p>
-                        <p>If you didn't request this, you can safely ignore this email.</p>
-                        <br>
-                        <p>Best regards,<br>The HertiX Team</p>
-                    </div>
-                </div>
-            ";
-            $mail->AltBody = "Hi $full_name, Your password reset code is: $otp. It expires in 15 minutes.";
+            $mail->Subject = $subject;
+            $mail->Body    = $body;
 
             $mail->send();
-            echo json_encode(["status" => "success", "message" => "OTP has been sent to your email!"]);
+            $emailStatus = "SMTP Sent";
         } catch (Exception $e) {
-            // For debugging, we can show the error, but in prod we might hide it
-            echo json_encode(["status" => "error", "message" => "Message could not be sent. Mailer Error: {$mail->ErrorInfo}"]);
+            $emailStatus = "SMTP Failed: " . $mail->ErrorInfo;
+            // Fallback to basic mail if SMTP fails
+            @mail($email, $subject, $body, $headers);
         }
+
+        // 2. Local Fallback: Log to file for debugging
+        $logFile = __DIR__ . '/../uploads/email_logs.txt';
+        $logEntry = "--- FORGOT PASSWORD EMAIL [" . date('Y-m-d H:i:s') . "] ---\nTo: $email\nStatus: $emailStatus\nCode: $otp\n----------------------------------\n\n";
+        file_put_contents($logFile, $logEntry, FILE_APPEND);
+
+        echo json_encode(["status" => "success", "message" => "Verification code has been sent to your email!"]);
+
     } else {
         echo json_encode(["status" => "error", "message" => "Failed to update record"]);
     }

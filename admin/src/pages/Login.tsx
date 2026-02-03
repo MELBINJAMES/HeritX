@@ -37,7 +37,7 @@ const Login = ({ role }: LoginProps) => {
           console.log('Google User logged in:', userData)
 
           if (role === 'Finder') {
-            window.location.href = 'http://localhost:3000/dashboard';
+            window.location.href = 'http://127.0.0.1:3000/dashboard';
           } else {
             navigate('/shop-owner/dashboard');
           }
@@ -73,16 +73,18 @@ const Login = ({ role }: LoginProps) => {
           id: data.user.id,
           name: data.user.name,
           email: data.user.email,
-          role: role
+          role: data.user.role === 'admin' ? 'admin' : data.user.role
         }
 
         login(userData)
 
         console.log('User logged in:', userData)
 
-        if (role === 'Finder') {
+        if (data.user.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else if (data.user.role === 'Finder') {
           // Redirect to the external User Dashboard (Protected Area)
-          window.location.href = 'http://localhost:3000/dashboard';
+          window.location.href = 'http://127.0.0.1:3000/dashboard';
         } else {
           navigate('/shop-owner/dashboard');
         }
@@ -154,7 +156,7 @@ const Login = ({ role }: LoginProps) => {
       )}
       <div className="auth-card">
         <div className="auth-card-header">
-          <a href="http://localhost:3000" className="back-arrow" aria-label="Back to home">
+          <a href="http://127.0.0.1:3000" className="back-arrow" aria-label="Back to home">
             ←
           </a>
           <div className="brand compact">

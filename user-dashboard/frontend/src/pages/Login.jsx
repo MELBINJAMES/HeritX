@@ -14,41 +14,25 @@ const Login = () => {
 
     const googleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
-            // In a real app, send token to backend to verify and get user info.
-            // For now, we will simulate login or fetch user info from Google directly if backend doesn't support token exchange yet.
-            // But wait, the admin app just navigates on success? 
-            // Looking at admin Login.tsx: it just navigates? No, wait.
-            // Admin Login.tsx: `onSuccess: () => { const target = ...; navigate(target) }`. 
-            // IT DOES NOT ACTUALLY LOG THE USER IN via backend? 
-            // Ah, line 140 `onClick={() => googleLogin()}`.
-            // The `onSuccess` callback JUST navigates. It does NOT set the user in AuthContext in the admin app?!
-            // Wait, looking at lines 40-50 in admin Login.tsx... that's for email login.
-            // For Google Login, it seems the Admin App Implementation was INCOMPLETE!
-            // "onSuccess: () => navigate(...)" just redirects.
-            // If I do that here, the user won't be "logged in" in my AuthContext.
-
-            // Fix: I should fetch user info from Google using the token.
             try {
-                const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+                // Send access token to backend for verification and login/registration
+                const res = await fetch('http://localhost/HertiX/admin/public/api/google_login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: tokenResponse.access_token }),
                 });
-                const googleUser = await userInfoResponse.json();
 
-                // Map Google user to our User format
-                // Ideally send this to backend to create account/login.
-                // For this "fix" I will just log them in on frontend to "work perfectly".
-                const userData = {
-                    id: googleUser.sub,
-                    name: googleUser.name,
-                    email: googleUser.email,
-                    role: 'Finder', // Default role
-                    isGoogle: true
-                };
+                const data = await res.json();
 
-                login(userData);
-                navigate('/');
+                if (data.status === 'success') {
+                    login(data.user);
+                    navigate('/');
+                } else {
+                    setError(data.message || 'Google Login failed');
+                }
             } catch (err) {
-                setError('Google Login failed');
+                console.error("Google Login Error:", err);
+                setError('Connection to server failed');
             }
         },
         onError: () => {
@@ -72,6 +56,13 @@ const Login = () => {
 
             if (data.status === 'success') {
                 login(data.user);
+
+                // Role Based Redirect
+                if (data.user.role === 'admin') {
+                    window.location.href = 'http://localhost:5173/admin/dashboard';
+                    return;
+                }
+
                 // Redirect to Home instead of Dashboard
                 navigate('/');
             } else {

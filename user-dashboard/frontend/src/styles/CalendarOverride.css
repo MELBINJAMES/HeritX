@@ -1,0 +1,142 @@
+/* HertiX Calendar Overrides - Refined & Compact */
+.availability-calendar-container {
+    background: white;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #eef2f6;
+    margin-top: 15px;
+    width: 100%;
+    max-width: 650px;
+    /* Increased to allow side-by-side */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.availability-calendar-container h3 {
+    font-size: 1rem !important;
+    margin-bottom: 12px !important;
+    font-weight: 700 !important;
+}
+
+.react-calendar {
+    width: 100% !important;
+    border: none !important;
+    font-family: inherit !important;
+    background: transparent !important;
+}
+
+.react-calendar__navigation {
+    height: 35px !important;
+    margin-bottom: 10px !important;
+}
+
+.react-calendar__navigation button {
+    color: #1a1a1a;
+    min-width: 30px !important;
+    background: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.react-calendar__navigation button:enabled:hover {
+    background-color: #f8fafc !important;
+    border-radius: 8px;
+}
+
+.react-calendar__month-view__weekdays {
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 0.7rem;
+    color: #94a3b8;
+    padding-bottom: 5px;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+    text-decoration: none !important;
+}
+
+.react-calendar__tile {
+    padding: 6px 2px !important;
+    /* Reduced padding for height */
+    font-size: 0.8rem;
+    border-radius: 6px;
+    height: 34px !important;
+    /* Fixed height for consistency */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    color: #1a1a1a !important;
+    /* Force neutral text color for all tiles */
+}
+
+/* Ensure weekends are neutral and not red to avoid confusion with booked dates */
+.react-calendar__month-view__days__day--weekend {
+    color: #1a1a1a !important;
+}
+
+.react-calendar__tile--now {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    font-weight: 700;
+}
+
+.react-calendar__tile:enabled:hover,
+.react-calendar__tile:enabled:focus {
+    background-color: #f1f5f9 !important;
+}
+
+/* Booked Dates Styling - Softer & Clearer */
+.booked-date {
+    background-color: rgba(239, 68, 68, 0.08) !important;
+    color: #ef4444 !important;
+    text-decoration: line-through;
+    cursor: not-allowed !important;
+    font-weight: 500;
+}
+
+/* Range Selection Styling */
+.react-calendar__tile--range {
+    background: #e2e8f0 !important;
+    color: #1a1a1a !important;
+    border-radius: 0 !important;
+}
+
+.react-calendar__tile--rangeStart {
+    border-top-left-radius: 8px !important;
+    border-bottom-left-radius: 8px !important;
+    background: #1a1a1a !important;
+    color: white !important;
+}
+
+.react-calendar__tile--rangeEnd {
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+    background: #1a1a1a !important;
+    color: white !important;
+}
+
+.react-calendar__tile--active {
+    background: #1a1a1a !important;
+    color: white !important;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.availability-calendar-container p {
+    font-size: 0.75rem !important;
+    color: #64748b !important;
+    margin-top: 12px !important;
+    font-style: italic;
+}
+
+/* Time Picker Styling */
+input[type="time"] {
+    font-family: inherit;
+    font-weight: 600;
+    color: #1a1a1a;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input[type="time"]:focus {
+    border-color: #1a1a1a !important;
+}

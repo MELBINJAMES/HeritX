@@ -39,6 +39,12 @@ if (!isset($googleUser['email'])) {
 $email = $googleUser['email'];
 $name = $googleUser['name'];
 
+// Security: Block Admin from using Google Login
+if ($email === 'admin@heritx.com') {
+    echo json_encode(["status" => "error", "message" => "Admin cannot login via Google. Please use password."]);
+    exit();
+}
+
 // Check if user exists
 $stmt = $conn->prepare("SELECT id, name, email, role FROM users WHERE email = ?");
 $stmt->bind_param("s", $email);
@@ -53,10 +59,34 @@ if ($result->num_rows > 0) {
         "message" => "Login successful",
         "user" => $user
     ]);
+    exit();
 } else {
-    // Optional: Auto-register functionality could go here
-    // For now, fail if not registered
-    echo json_encode(["status" => "error", "message" => "User with email ($email) is not registered. Please register first."]);
+    // User does not exist, AUTO-REGISTER them
+    $role = 'Finder';
+    $password_hash = password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT); // Generate random password
+    $created_at = date('Y-m-d H:i:s');
+
+    $insert_stmt = $conn->prepare("INSERT INTO users (name, email, password, role, created_at) VALUES (?, ?, ?, ?, ?)");
+    $insert_stmt->bind_param("sssss", $name, $email, $password_hash, $role, $created_at);
+
+    if ($insert_stmt->execute()) {
+        $new_user_id = $insert_stmt->insert_id;
+        
+        // Return success with new user data
+        echo json_encode([
+            "status" => "success",
+            "message" => "Account created and logged in",
+            "user" => [
+                "id" => $new_user_id,
+                "name" => $name,
+                "email" => $email,
+                "role" => $role
+            ]
+        ]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Failed to create account: " . $insert_stmt->error]);
+    }
+    $insert_stmt->close();
 }
 
 $stmt->close();

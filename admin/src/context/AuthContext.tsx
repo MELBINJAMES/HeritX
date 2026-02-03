@@ -5,7 +5,7 @@ type User = {
     id: string;
     name: string;
     email: string;
-    role: 'Shop Owner' | 'Finder';
+    role: 'Shop Owner' | 'Finder' | 'admin';
 };
 
 type AuthContextType = {

@@ -76,7 +76,7 @@ $working_days = $conn->real_escape_string($data['working_days'] ?? '');
 
 // 1. Update User Auth Info (Name sync)
 // Note: `name` is often a reserved keyword, using backticks is safer
-$sqlUser = "UPDATE shopowners SET `name` = ? WHERE id = ?";
+$sqlUser = "UPDATE users SET `name` = ? WHERE id = ?";
 $stmtUser = $conn->prepare($sqlUser);
 if ($stmtUser) {
     $stmtUser->bind_param("si", $shop_name, $id);
