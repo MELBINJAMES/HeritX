@@ -28,7 +28,8 @@ interface Order {
   renter_name: string;
   renter_email: string;
   status: 'pending' | 'active' | 'completed' | 'cancelled';
-  // ... other fields if present in real data
+  created_at: string;
+  booking_date: string;
 }
 
 const downloadWebReport = (shopName: string, stats: any, inventory: Item[], orders: Order[]) => {
@@ -349,10 +350,12 @@ const ShopOwnerDashboard = () => {
 
     // Validation Logic
     if (newItem.name.length < 3) { triggerAlert('Validation Error', "Product Name must be at least 3 characters."); setLoading(false); return; }
+    if (/\d/.test(newItem.name)) { triggerAlert('Validation Error', "Product Name should not contain numbers."); setLoading(false); return; }
     if (parseInt(newItem.quantity) < 1) { triggerAlert('Validation Error', "Quantity must be at least 1."); setLoading(false); return; }
     if (parseFloat(newItem.price) <= 0) { triggerAlert('Validation Error', "Daily Rent must be a positive number."); setLoading(false); return; }
     if (parseFloat(newItem.deposit) < parseFloat(newItem.price)) { triggerAlert('Validation Error', "Deposit must be greater than or equal to Daily Rent."); setLoading(false); return; }
     if (newItem.description.length < 10) { triggerAlert('Validation Error', "Description must be at least 10 characters."); setLoading(false); return; }
+    if (/\d/.test(newItem.description)) { triggerAlert('Validation Error', "Description should not contain numbers."); setLoading(false); return; }
     if (!newItem.image && !editItemId) { triggerAlert('Validation Error', "Please upload an image."); setLoading(false); return; }
 
     const formData = new FormData();
@@ -468,7 +471,7 @@ const ShopOwnerDashboard = () => {
   };
 
   const stats = calculateStats();
-  const handleLogout = () => { logout(); window.location.href = 'http://127.0.0.1:3000'; };
+  const handleLogout = () => { logout(); window.location.href = 'http://localhost:3000'; };
 
   // Modern Skeleton
   const SkeletonLoader = () => (
@@ -604,7 +607,12 @@ const ShopOwnerDashboard = () => {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                       <div className="field">
                         <span>Product Name</span>
-                        <input required placeholder="e.g. Bronze Nilavilakku" value={newItem.name} onChange={e => setNewItem({ ...newItem, name: e.target.value })} />
+                        <input required placeholder="e.g. Bronze Nilavilakku" value={newItem.name} onChange={e => {
+                          const val = e.target.value;
+                          if (!/\d/.test(val)) {
+                            setNewItem({ ...newItem, name: val });
+                          }
+                        }} />
                       </div>
                       <div style={{ display: 'flex', gap: 10 }}>
                         <div className="field" style={{ flex: 1 }}>
@@ -691,7 +699,12 @@ const ShopOwnerDashboard = () => {
                         <textarea
                           placeholder="Detailed description of the item..."
                           value={newItem.description}
-                          onChange={e => setNewItem({ ...newItem, description: e.target.value })}
+                          onChange={e => {
+                            const val = e.target.value;
+                            if (!/\d/.test(val)) {
+                              setNewItem({ ...newItem, description: val });
+                            }
+                          }}
                           rows={4}
                           style={{
                             resize: 'vertical',
@@ -840,6 +853,37 @@ const ShopOwnerDashboard = () => {
 
 
       case 'orders':
+        const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'active'>('all');
+        const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+        const filteredOrders = orders.filter(order => {
+          if (filterStatus === 'all') return true;
+          return order.status === filterStatus;
+        });
+
+        const handleUpdateStatus = async (orderId: number, newStatus: string) => {
+          setLoading(true);
+          try {
+            const res = await fetch('http://localhost/HertiX/admin/public/api/shop_update_order_status.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ order_id: orderId, status: newStatus, owner_id: user?.id })
+            });
+            const data = await res.json();
+            if (data.status === 'success') {
+              triggerAlert('Success', `Order #${orderId} marked as ${newStatus}`);
+              fetchRealData(user.id); // Refresh data
+              setSelectedOrder(null); // Close modal
+            } else {
+              triggerAlert('Error', data.message);
+            }
+          } catch (error) {
+            triggerAlert('Error', 'Failed to update status');
+          } finally {
+            setLoading(false);
+          }
+        };
+
         return (
           <div className="fade-in">
             <div className="page-header">
@@ -848,9 +892,24 @@ const ShopOwnerDashboard = () => {
                 <p className="page-subtitle">Track bookings and manage returns.</p>
               </div>
               <div className="filter-bar">
-                <button className="filter-pill active">All</button>
-                <button className="filter-pill">Pending</button>
-                <button className="filter-pill">Active</button>
+                <button
+                  className={`filter-pill ${filterStatus === 'all' ? 'active' : ''}`}
+                  onClick={() => setFilterStatus('all')}
+                >
+                  All
+                </button>
+                <button
+                  className={`filter-pill ${filterStatus === 'pending' ? 'active' : ''}`}
+                  onClick={() => setFilterStatus('pending')}
+                >
+                  Pending
+                </button>
+                <button
+                  className={`filter-pill ${filterStatus === 'active' ? 'active' : ''}`}
+                  onClick={() => setFilterStatus('active')}
+                >
+                  Active
+                </button>
               </div>
             </div>
 
@@ -867,10 +926,10 @@ const ShopOwnerDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.length === 0 ? (
-                    <tr><td colSpan="6" style={{ textAlign: 'center', padding: 40 }}>No active rentals found.</td></tr>
+                  {filteredOrders.length === 0 ? (
+                    <tr><td colSpan="6" style={{ textAlign: 'center', padding: 40 }}>No {filterStatus !== 'all' ? filterStatus : ''} rentals found.</td></tr>
                   ) : (
-                    orders.map(order => (
+                    filteredOrders.map(order => (
                       <tr key={order.order_id}>
                         <td style={{ fontWeight: 600 }}>#{order.order_id}</td>
                         <td>Rental</td>
@@ -879,10 +938,9 @@ const ShopOwnerDashboard = () => {
                           <div>{order.renter_name}</div>
                           <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{order.renter_email}</div>
                         </td>
-                        <td><span className={`badge ${order.status === 'active' ? 'info' : order.status === 'pending' ? 'warning' : 'success'}`}>{order.status}</span></td>
+                        <td><span className={`badge ${order.status === 'active' ? 'success' : order.status === 'pending' ? 'warning' : 'info'}`}>{order.status}</span></td>
                         <td>
-                          {order.status === 'pending' && <button className="btn btn-primary btn-sm">Approve</button>}
-                          {order.status === 'active' && <button className="btn btn-outline btn-sm">Track</button>}
+                          <button className="btn btn-outline btn-sm" onClick={() => setSelectedOrder(order)}>Track/Manage</button>
                         </td>
                       </tr>
                     ))
@@ -890,11 +948,67 @@ const ShopOwnerDashboard = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Track/Manage Modal */}
+            {selectedOrder && (
+              <div style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(0,0,0,0.6)', zIndex: 1200,
+                display: 'flex', justifyContent: 'center', alignItems: 'center'
+              }} onClick={() => setSelectedOrder(null)}>
+                <div className="modern-card" style={{ width: 500, maxWidth: '95%' }} onClick={e => e.stopPropagation()}>
+                  <div className="card-header">
+                    <h3>Manage Order #{selectedOrder.order_id}</h3>
+                    <button onClick={() => setSelectedOrder(null)} style={{ border: 'none', background: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>&times;</button>
+                  </div>
+                  <div className="card-body">
+                    <div className="grid-layout" style={{ gridTemplateColumns: '1fr 1fr', gap: 15, marginBottom: 20 }}>
+                      <div><label className="form-label">Item</label><div style={{ fontWeight: 600 }}>{selectedOrder.item_name}</div></div>
+                      <div><label className="form-label">Customer</label><div style={{ fontWeight: 600 }}>{selectedOrder.renter_name}</div></div>
+                      <div><label className="form-label">Date</label><div>{new Date(selectedOrder.created_at || selectedOrder.booking_date).toLocaleDateString()}</div></div>
+                      <div><label className="form-label">Current Status</label><div className="badge">{selectedOrder.status}</div></div>
+                    </div>
+
+                    <h4 style={{ marginBottom: 10, borderBottom: '1px solid #eee', paddingBottom: 5 }}>Update Status</h4>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      {selectedOrder.status === 'pending' && (
+                        <>
+                          <button className="btn btn-primary" style={{ background: '#10b981', borderColor: '#10b981' }} onClick={() => handleUpdateStatus(selectedOrder.order_id, 'active')}>Approve (Mark Active)</button>
+                          <button className="btn btn-outline" style={{ color: '#ef4444', borderColor: '#ef4444' }} onClick={() => handleUpdateStatus(selectedOrder.order_id, 'cancelled')}>Reject</button>
+                        </>
+                      )}
+                      {selectedOrder.status === 'active' && (
+                        <button className="btn btn-primary" onClick={() => handleUpdateStatus(selectedOrder.order_id, 'completed')}>Mark Returned (Complete)</button>
+                      )}
+                      {selectedOrder.status === 'completed' && (
+                        <div style={{ color: '#10b981', fontWeight: 600 }}>Order Completed</div>
+                      )}
+                      {selectedOrder.status === 'cancelled' && (
+                        <div style={{ color: '#ef4444', fontWeight: 600 }}>Order Cancelled</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         );
       case 'analytics':
-        const revenueData = [4500, 7200, 3100, 8900, 5600, 9200, 12500]; // Mock monthly data for demo
-        const maxRevenue = Math.max(...revenueData);
+      case 'analytics':
+        // Calculate Revenue for Last 7 Days
+        const last7Days = Array.from({ length: 7 }, (_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() - (6 - i));
+          return d.toISOString().split('T')[0];
+        });
+
+        const revenueData = last7Days.map(date => {
+          return orders
+            .filter(o => o.status !== 'cancelled' && (o.created_at || o.booking_date).startsWith(date))
+            .reduce((sum, o) => sum + 1500, 0); // Assuming 1500 per order or use valid price if available
+        });
+
+        const maxRevenue = Math.max(...revenueData, 100); // Prevent div by zero
 
         return (
           <div className="fade-in">
@@ -1335,13 +1449,14 @@ const ShopOwnerDashboard = () => {
                 <div className="card-body" style={{ padding: 0 }}>
                   {orders.length > 0 ? (
                     <table className="modern-table">
-                      <thead><tr><th>Time</th><th>Event</th><th>Status</th></tr></thead>
+                      <thead><tr><th>ID</th><th>Time</th><th>Event</th><th>Status</th></tr></thead>
                       <tbody>
-                        {orders.slice(0, 3).map(o => (
+                        {orders.slice(0, 5).map(o => (
                           <tr key={o.order_id}>
-                            <td>Today, 10:23 AM</td>
-                            <td>New booking request for <strong>{o.item_name}</strong></td>
-                            <td><span className="badge warning">Pending</span></td>
+                            <td style={{ color: '#64748b', fontSize: '0.85rem' }}>#{o.order_id}</td>
+                            <td>{new Date(o.created_at || o.booking_date).toLocaleDateString()}</td>
+                            <td>New booking request for <strong>{o.item_name}</strong> by {o.renter_name}</td>
+                            <td><span className={`badge ${o.status === 'active' ? 'info' : o.status === 'pending' ? 'warning' : 'success'}`}>{o.status}</span></td>
                           </tr>
                         ))}
                       </tbody>
@@ -1361,9 +1476,19 @@ const ShopOwnerDashboard = () => {
     <div className="dashboard-container">
       <nav className="modern-nav">
         <div className="nav-top">
-          <div className="brand-logo">
-            <span style={{ fontSize: '1.5rem' }}>🏛️</span> HeritX
-            <span className="brand-badge">Seller</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <button
+              onClick={() => window.location.href = 'http://localhost:3000'}
+              className="btn btn-outline btn-sm"
+              style={{ padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}
+              title="Back to Marketplace"
+            >
+              ← Back to Shop
+            </button>
+            <div className="brand-logo" onClick={() => window.location.href = 'http://localhost:3000'} style={{ cursor: 'pointer' }}>
+              <span style={{ fontSize: '1.5rem' }}>🏛️</span> HeritX
+              <span className="brand-badge">Seller</span>
+            </div>
           </div>
           <div className="nav-actions">
             <div className="user-profile" onClick={() => setActiveTab('profile')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>

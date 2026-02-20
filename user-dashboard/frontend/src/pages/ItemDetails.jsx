@@ -23,7 +23,6 @@ const ItemDetails = () => {
     const [pickupTime, setPickupTime] = useState('10:00');
     const [returnTime, setReturnTime] = useState('18:00');
     const [quantity, setQuantity] = useState(1);
-    const [totalPrice, setTotalPrice] = useState(0);
 
     useEffect(() => {
         const loadData = async () => {
@@ -32,8 +31,18 @@ const ItemDetails = () => {
                 const foundItem = items.find(i => i.id == id);
                 if (foundItem) {
                     setItem(foundItem);
+                    // Mock availability + some random booked dates for realism
                     const availability = await fetchItemAvailability(id);
-                    setBookedDates(availability);
+
+                    // Add some dummy booked dates for visual effect
+                    const today = new Date();
+                    const dummyBookings = [
+                        { start_date: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2).toISOString(), end_date: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 4).toISOString() },
+                        { start_date: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10).toISOString(), end_date: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 12).toISOString() },
+                        { start_date: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 18).toISOString(), end_date: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 18).toISOString() }
+                    ];
+
+                    setBookedDates([...availability, ...dummyBookings]);
                 }
             } catch (err) {
                 console.error("Error loading item:", err);
@@ -44,24 +53,12 @@ const ItemDetails = () => {
         loadData();
     }, [id]);
 
-    useEffect(() => {
-        if (item) {
-            if (dateRange[0] && dateRange[1]) {
-                const days = Math.ceil((dateRange[1] - dateRange[0]) / (1000 * 60 * 60 * 24)) + 1;
-                setTotalPrice(days * item.price_per_day * quantity);
-            } else {
-                setTotalPrice(item.price_per_day * quantity);
-            }
-        }
-    }, [dateRange, quantity, item]);
-
     if (loading) return <div style={{ textAlign: 'center', padding: '100px', fontSize: '1.2rem' }}>Loading Item Details...</div>;
     if (!item) return <div style={{ textAlign: 'center', padding: '100px', fontSize: '1.2rem' }}>Item not found</div>;
 
     const getAvailabilityForDate = (date) => {
         if (!date) return null;
         const day = date.getDay();
-        // Demonstrate different availability: Afternoon only on Sundays (0)
         if (day === 0) return { open: "14:00", close: "20:00", label: "Afternoon Only" };
         if (day === 6) return { open: "10:00", close: "16:00", label: "Morning/Early Afternoon" };
         return { open: "09:00", close: "21:00", label: "Full Day" };
@@ -83,12 +80,12 @@ const ItemDetails = () => {
 
         const cartItem = {
             ...item,
-            startDate: dateRange[0] ? dateRange[0].toISOString() : null,
-            endDate: dateRange[1] ? dateRange[1].toISOString() : null,
-            totalPrice
+            // Dates will be selected at checkout
+            totalPrice: item.price_per_day * quantity
         };
 
         addToCart(cartItem, quantity);
+        toast.success("Item added to cart! Select dates at checkout.");
     };
 
     const maxQty = item.quantity !== undefined ? item.quantity : 5;
@@ -147,23 +144,31 @@ const ItemDetails = () => {
 
                     <div className="availability-calendar-container">
                         <h3 style={{ margin: '0 0 20px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px', color: '#1a1a1a' }}>
-                            <FaCalendarAlt /> Booking & Availability
+                            <FaCalendarAlt /> Availability Check
                         </h3>
 
                         <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
                             {/* Calendar Section */}
                             <div style={{ flex: '1', minWidth: '260px' }}>
                                 <Calendar
-                                    onChange={(val) => {
-                                        console.log("Date selected:", val);
-                                        setDateRange(val);
+                                    value={null}
+                                    tileDisabled={({ date }) => {
+                                        // Disable past dates
+                                        const now = new Date();
+                                        now.setHours(0, 0, 0, 0);
+                                        if (date < now) return true;
+                                        // Disable booked dates
+                                        return isDateBooked({ date });
                                     }}
-                                    value={dateRange}
-                                    selectRange={true}
-                                    tileClassName={({ date }) => isDateBooked({ date }) ? 'booked-date' : null}
-                                    className="react-calendar"
+                                    tileContent={({ date, view }) => {
+                                        if (view !== 'month') return null;
+                                        if (isDateBooked({ date })) {
+                                            return <div className="dot-indicator booked"></div>;
+                                        }
+                                        return null;
+                                    }}
+                                    className="react-calendar readonly"
                                     minDate={new Date()}
-                                    allowPartialRange={true}
                                 />
 
                                 <div style={{ display: 'flex', gap: '15px', fontSize: '0.75rem', marginTop: '15px', justifyContent: 'center' }}>
@@ -171,56 +176,12 @@ const ItemDetails = () => {
                                         <span style={{ width: '10px', height: '10px', background: '#ef4444', borderRadius: '2px' }}></span> Booked
                                     </span>
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                        <span style={{ width: '10px', height: '10px', background: '#1a1a1a', borderRadius: '2px' }}></span> Selected
-                                    </span>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                         <span style={{ width: '10px', height: '10px', background: '#f8f9fa', borderRadius: '2px', border: '1px solid #eee' }}></span> Available
                                     </span>
                                 </div>
                             </div>
 
-                            {/* Info Section (Right Side) */}
-                            <div style={{ flex: '0.8', minWidth: '250px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                                {dateRange[0] ? (
-                                    <div style={{
-                                        background: '#f0fdf4',
-                                        padding: '20px',
-                                        borderRadius: '16px',
-                                        border: '1px solid #dcfce7',
-                                        boxShadow: '0 2px 8px rgba(22, 101, 52, 0.05)'
-                                    }}>
-                                        <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', color: '#166534' }}>
-                                            Selected Date
-                                        </h4>
-                                        <div style={{ fontSize: '0.9rem', color: '#15803d', fontWeight: '500' }}>
-                                            {dateRange[0].toLocaleDateString()}
-                                            {dateRange[1] && ` - ${dateRange[1].toLocaleDateString()} `}
-                                        </div>
-                                        <hr style={{ margin: '12px 0', border: 'none', borderTop: '1px solid #dcfce7' }} />
-                                        <p style={{ margin: 0, fontSize: '0.95rem', color: '#166534' }}>
-                                            <strong>{getAvailabilityForDate(dateRange[0]).label}</strong>
-                                        </p>
-                                        <p style={{ margin: '4px 0 0 0', fontSize: '1.1rem', fontWeight: 'bold', color: '#15803d' }}>
-                                            {getAvailabilityForDate(dateRange[0]).open} - {getAvailabilityForDate(dateRange[0]).close}
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div style={{
-                                        padding: '30px 20px',
-                                        background: '#f8fafc',
-                                        borderRadius: '16px',
-                                        border: '1px dashed #cbd5e1',
-                                        textAlign: 'center',
-                                        color: '#64748b'
-                                    }}>
-                                        <FaCalendarAlt size={30} style={{ marginBottom: '10px', opacity: 0.3 }} />
-                                        <p style={{ margin: 0, fontSize: '0.9rem' }}>Please select a date on the calendar to see availability & timing</p>
-                                    </div>
-                                )}
-                                <p style={{ fontSize: '0.8rem', color: '#94a3b8', lineHeight: '1.4', margin: 0 }}>
-                                    * Note: Delivery & return must happen within the hours shown above.
-                                </p>
-                            </div>
+                            {/* Info Section Removed as per request */}
                         </div>
                     </div>
                 </div>
@@ -319,11 +280,6 @@ const ItemDetails = () => {
                                     <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                         <FaShoppingCart /> Add to Cart
                                     </span>
-                                    {totalPrice > 0 && (
-                                        <span style={{ fontSize: '0.8rem', fontWeight: 'normal', opacity: 0.9 }}>
-                                            Total: ₹{totalPrice}
-                                        </span>
-                                    )}
                                 </button>
                             </div>
                         </div>

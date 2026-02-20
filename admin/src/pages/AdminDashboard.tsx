@@ -405,6 +405,13 @@ const AdminDashboard = () => {
                                 onClick={() => setActiveTab('owners')}
                             />
                             <StatCard
+                                label="Verify Shops"
+                                value={stats.pending_owners || 0}
+                                color="red"
+                                icon="🛡️"
+                                onClick={() => setActiveTab('pending_owners')}
+                            />
+                            <StatCard
                                 label="Pending Items"
                                 value={stats.pending_items || 0}
                                 color="green"

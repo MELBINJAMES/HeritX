@@ -24,10 +24,10 @@ const Footer = () => {
                         <p className="brand-tagline">{t('brand_tagline')}</p>
                         <p className="brand-desc">{t('brand_desc')}</p>
                         <div className="footer-social">
-                            <a href="#" aria-label="Facebook"><FaFacebook /></a>
-                            <a href="#" aria-label="Instagram"><FaInstagram /></a>
-                            <a href="#" aria-label="YouTube"><FaYoutube /></a>
-                            <a href="#" aria-label="WhatsApp"><FaWhatsapp /></a>
+                            <a href="https://www.facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FaFacebook /></a>
+                            <a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><FaInstagram /></a>
+                            <a href="https://www.youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><FaYoutube /></a>
+                            <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><FaWhatsapp /></a>
                         </div>
                     </div>
 

@@ -800,3 +800,65 @@ Do not mix costume parts carelessly
 
 [2026-02-03 16:06:51] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1770131211_9b44ed_e82710cbd11f47edbe1360f77c22b424~mv2.avif
 [2026-02-03 16:06:51] Item inserted via Mysqli
+[2026-02-04 05:13:58] Request Received
+[2026-02-04 05:13:58] Array
+(
+    [owner_id] => 10
+    [name] => 222
+    [category] => Attire
+    [occasion] => Onam
+    [item_condition] => Good
+    [quantity] => 1
+    [price] => 199
+    [deposit] => 443
+    [description] => qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
+    [dos] => 
+    [donts] => 
+)
+
+[2026-02-04 05:13:58] Array
+(
+    [image] => Array
+        (
+            [name] => Aranmula Kannadi.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\php15AD.tmp
+            [error] => 0
+            [size] => 24864
+        )
+
+)
+
+[2026-02-04 05:13:58] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1770178438_Aranmula Kannadi.webp
+[2026-02-04 05:13:58] Item inserted via Mysqli
+[2026-02-04 07:24:43] Request Received
+[2026-02-04 07:24:43] Array
+(
+    [owner_id] => 14
+    [name] => nillvillakku
+    [category] => Traditional Lamps
+    [occasion] => Temple Festival
+    [item_condition] => Good
+    [quantity] => 3
+    [price] => 677
+    [deposit] => 700
+    [description] => errttydfgg
+    [dos] => 
+    [donts] => 
+)
+
+[2026-02-04 07:24:43] Array
+(
+    [image] => Array
+        (
+            [name] => brass lamb.webp
+            [type] => image/webp
+            [tmp_name] => C:\xampp\tmp\phpCBB1.tmp
+            [error] => 0
+            [size] => 29660
+        )
+
+)
+
+[2026-02-04 07:24:43] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1770186283_brass lamb.webp
+[2026-02-04 07:24:43] Item inserted via Mysqli

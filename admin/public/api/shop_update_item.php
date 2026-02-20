@@ -50,7 +50,7 @@ $bind_types = "sssiddssssii";
 $bind_params = [$name, $category, $quality, $quantity, $price, $deposit, $description, $dos, $donts, $occasion, $owner_id, $item_id];
 
 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-    $uploadDir = __DIR__ . '/../../../user-dashboard/frontend/public/uploads/';
+    $uploadDir = __DIR__ . '/../../../uploads/';
     if (!file_exists($uploadDir)) mkdir($uploadDir, 0777, true);
     
     $fileName = 'item_' . time() . '_' . basename($_FILES['image']['name']);

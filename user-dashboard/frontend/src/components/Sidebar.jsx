@@ -98,7 +98,7 @@ const Sidebar = () => {
             </nav>
 
             <div className="logout-section">
-                <button className="nav-item logout" onClick={() => window.location.href = 'http://localhost:5173/finder/login'}>
+                <button className="nav-item logout" onClick={() => window.location.href = 'http://localhost:5174/finder/login'}>
                     <span className="icon"><FaSignOutAlt /></span>
                     <span className="label">Logout</span>
                 </button>

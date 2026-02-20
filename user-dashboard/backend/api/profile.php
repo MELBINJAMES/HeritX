@@ -5,7 +5,7 @@ header("Content-Type: application/json");
 
 require_once '../../../admin/public/api/db.php';
 
-$user_id = 1; // Mock User ID
+// Profile logic uses target_id dynamically. Removed mock user_id.
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Determine if it's JSON or FormData

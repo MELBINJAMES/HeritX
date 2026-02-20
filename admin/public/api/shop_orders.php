@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 header("Access-Control-Allow-Origin: *");
-include 'db.php';
+include 'db.php'; // uses mysqli $conn and $dbname='Heritx'
 
 $user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
 
@@ -10,40 +10,36 @@ if ($user_id <= 0) {
     exit;
 }
 
-// Manual connection to be safe given db.php uncertainty
-$host = 'localhost';
-$db = 'hertix_db_v2';
-$user = 'root';
-$pass = '';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8", $user, $pass);
-    
-    // Fetch bookings for items owned by this user
+// Fetch bookings for items owned by this user
+    // Fetch rentals for items owned by this user
     $sql = "
         SELECT 
-            b.id as order_id,
-            b.status,
-            b.booking_date,
-            b.event_date,
+            r.id as order_id,
+            r.status,
+            r.start_date as booking_date,
+            r.created_at,
             i.name as item_name,
             i.image_url,
             u.name as renter_name,
             u.email as renter_email
-        FROM bookings b
-        JOIN items i ON b.item_id = i.id
-        JOIN users u ON b.user_id = u.id
+        FROM rentals r
+        JOIN items i ON r.item_id = i.id
+        JOIN users u ON r.user_id = u.id
         WHERE i.owner_id = ?
-        ORDER BY b.created_at DESC
+        ORDER BY r.created_at DESC
     ";
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$user_id]);
-    $orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    echo json_encode($orders);
 
-} catch (PDOException $e) {
-    echo json_encode(["error" => $e->getMessage()]);
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$orders = [];
+if ($result) {
+    while ($row = $result->fetch_assoc()) {
+        $orders[] = $row;
+    }
 }
+
+echo json_encode($orders);
 ?>

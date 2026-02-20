@@ -45,3 +45,14 @@ Message:
 ..
 --------------------------------------
 
+--- EMAIL SENT [2026-02-04 07:19:20] ---
+To: melbinjames2028@mca.ajce.in
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear Dev rentals,
+
+Your shop registration has been approved on 2026-02-04 07:19:18. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+

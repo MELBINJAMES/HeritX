@@ -2,14 +2,24 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FaRobot, FaPaperPlane, FaTimes, FaSync } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
+import { fetchItems } from '../services/api';
 import '../styles/Chatbot.css';
 
 const Chatbot = () => {
     const [isOpen, setIsOpen] = useState(false);
     const { t, language } = useLanguage();
+    const [dbItems, setDbItems] = useState([]);
 
     // State to track conversation context
     const [chatState, setChatState] = useState(null);
+
+    useEffect(() => {
+        fetchItems().then(data => {
+            if (data && Array.isArray(data)) {
+                setDbItems(data);
+            }
+        });
+    }, []);
 
     // --- KNOWLEDGE BASE ---
     const ITEM_DATA = {
@@ -173,7 +183,7 @@ const Chatbot = () => {
                 "mask", "lamp", "mirror", "aranmula", "saree", "kasavu", "mundu",
                 "ornament", "necklace", "bangles", "painting", "mural",
                 "boat", "vallam", "artifact", "samskarika"
-            ])
+            ]).concat(dbItems.map(it => it.name.toLowerCase()))
         };
 
         // Helper to get translated generic item prompt
@@ -190,14 +200,39 @@ const Chatbot = () => {
             const matchedItemKey = findMatchingKeyword(query, intents.items);
             if (matchedItemKey) {
                 setChatState(null);
-                const data = ITEM_DATA[matchedItemKey.toLowerCase()];
-                if (data) {
+
+                // 1. Check Database Items
+                const dbItem = dbItems.find(it =>
+                    it.name.toLowerCase().includes(matchedItemKey.toLowerCase()) ||
+                    matchedItemKey.toLowerCase().includes(it.name.toLowerCase())
+                );
+
+                // 2. Check Static Knowledge Base for better metadata even if out of stock
+                const staticData = ITEM_DATA[matchedItemKey.toLowerCase()];
+
+                if (dbItem) {
+                    const isOutOfStock = parseInt(dbItem.quantity) <= 0;
                     return {
-                        text: `<strong>${data.name}</strong><br/>Status: <strong>${data.status}</strong><br/>Qty: ${data.quantity}<br/>${data.description}`,
-                        options: [t('book_now'), t('check_avail')],
-                        action: { label: t('view'), url: data.url }
+                        text: `<strong>${dbItem.name}</strong><br/>Status: <strong>${isOutOfStock ? '<span style="color: #ef4444;">Out of Stock</span>' : 'In Stock'}</strong>${!isOutOfStock ? `<br/>Qty: ${dbItem.quantity}` : ''}<br/>${dbItem.description}`,
+                        options: isOutOfStock ? [t('sugg_avail'), t('sugg_book')] : [t('book_now'), t('check_avail')],
+                        action: { label: t('view'), url: `/item/${dbItem.id}` }
                     };
                 }
+
+                if (staticData) {
+                    return {
+                        text: `<strong>${staticData.name}</strong><br/>Status: <span style="color: #ef4444; font-weight: bold;">Out of Stock</span><br/>${staticData.description}`,
+                        options: [t('sugg_avail'), t('sugg_book')],
+                        action: { label: t('browse'), url: "/browse" }
+                    };
+                }
+
+                // 3. Fallback: Generic Out of Stock
+                return {
+                    text: `Sorry, the **${matchedItemKey}** is currently **Out of Stock** in our shop. Would you like to check other available items?`,
+                    options: [t('sugg_avail'), t('sugg_book')],
+                    action: { label: t('browse'), url: "/browse" }
+                };
             }
             if (lowerQuery.match(/cancel|stop|no/)) {
                 setChatState(null);
@@ -206,17 +241,84 @@ const Chatbot = () => {
         }
 
         // --- ENTITY HANDLING ---
-        const matchedItemKey = findMatchingKeyword(query, intents.items);
+        // 1. Direct DB Item Search (Best for "Urumi", "Chenda", etc.)
+        let matchedDbItem = null;
+        for (const item of dbItems) {
+            const nameLower = item.name.toLowerCase();
+            // Check exact name match in query
+            if (lowerQuery.includes(nameLower)) {
+                matchedDbItem = item;
+                break;
+            }
+            // Check significant word match (e.g. "Urumi" in "Urumi Sword")
+            const words = nameLower.split(' ');
+            for (const w of words) {
+                if (w.length > 3 && lowerQuery.includes(w)) {
+                    matchedDbItem = item;
+                    break;
+                }
+            }
+            if (matchedDbItem) break;
+        }
+
+        const matchedItemKey = !matchedDbItem ? findMatchingKeyword(query, intents.items) : null;
         const isAvailabilityIntent = findMatchingKeyword(query, intents.availability);
         const isBookingIntent = findMatchingKeyword(query, intents.booking);
 
+        if (matchedDbItem) {
+            const isOutOfStock = parseInt(matchedDbItem.quantity) <= 0;
+            const imageUrl = matchedDbItem.image_url ? `http://localhost/HertiX/uploads/${matchedDbItem.image_url}` : null;
+
+            let responseText = '';
+            if (imageUrl) {
+                responseText += `<div class="chat-item-image"><img src="${imageUrl}" alt="${matchedDbItem.name}" onerror="this.style.display='none'" /></div>`;
+            }
+            responseText += `<strong>${matchedDbItem.name}</strong><br/>`;
+            if (isOutOfStock) {
+                responseText += '<span style="color: #ef4444; font-weight: bold;">Out of Stock</span><br/>';
+            }
+            responseText += `<div class="chat-item-desc">${matchedDbItem.description}</div>`;
+
+            return {
+                text: responseText,
+                options: isOutOfStock ? [t('sugg_avail'), t('sugg_book')] : [t('book_now'), t('check_avail')],
+                action: { label: t('view'), url: `/item/${matchedDbItem.id}` }
+            };
+        }
+
         if (matchedItemKey) {
-            const data = ITEM_DATA[matchedItemKey.toLowerCase()];
-            if (data) {
+            // Check Static K-Base if DB didn't match
+            // (Note: dbItems check above should have caught it if it was in DB, so this is mostly for hardcoded fallbacks)
+
+            // Re-check DB just in case fuzzy match caught something the loop didn't (unlikely but safe)
+            const dbItem = dbItems.find(it =>
+                it.name.toLowerCase().includes(matchedItemKey.toLowerCase()) ||
+                matchedItemKey.toLowerCase().includes(it.name.toLowerCase())
+            );
+
+            if (dbItem) {
+                const isOutOfStock = parseInt(dbItem.quantity) <= 0;
                 return {
-                    text: `<strong>${data.name}</strong><br/>${data.description}`,
-                    options: [t('book_now'), t('check_avail')],
-                    action: { label: t('view'), url: data.url }
+                    text: `<strong>${dbItem.name}</strong><br/>${isOutOfStock ? '<span style="color: #ef4444; font-weight: bold;">Out of Stock</span><br/>' : ''}${dbItem.description}`,
+                    options: isOutOfStock ? [t('sugg_avail'), t('sugg_book')] : [t('book_now'), t('check_avail')],
+                    action: { label: t('view'), url: `/item/${dbItem.id}` }
+                };
+            }
+
+            const staticData = ITEM_DATA[matchedItemKey.toLowerCase()];
+
+            if (staticData) {
+                return {
+                    text: `<strong>${staticData.name}</strong><br/><span style="color: #ef4444; font-weight: bold;">Out of Stock</span><br/>${staticData.description}`,
+                    options: [t('sugg_avail'), t('sugg_book')],
+                    action: { label: t('browse'), url: "/browse" }
+                };
+            } else {
+                // Return Out of Stock if keyword matched but no data exists in known inventory
+                return {
+                    text: `The **${matchedItemKey}** is currently **Out of Stock**. Feel free to browse our other traditional collections!`,
+                    options: [t('sugg_avail'), t('sugg_book')],
+                    action: { label: t('browse'), url: "/browse" }
                 };
             }
         }
@@ -235,6 +337,14 @@ const Chatbot = () => {
                 text: t('bot_book_info'),
                 options: [t('sugg_cultural'), t('sugg_avail')],
                 action: { label: t('browse'), url: "/browse" }
+            };
+        }
+
+        if (findMatchingKeyword(query, intents.contact) || lowerQuery.includes('help') || lowerQuery.includes('support')) {
+            return {
+                text: "You can contact our support team directly via WhatsApp for personalized assistance.",
+                options: [t('sugg_avail'), t('sugg_book')],
+                action: { label: "Chat on WhatsApp", url: "https://wa.me/919876543210" } // Replace with actual number
             };
         }
 
@@ -347,9 +457,15 @@ const Chatbot = () => {
                             <div key={index} className={`message ${msg.sender}`}>
                                 <div dangerouslySetInnerHTML={{ __html: msg.text }} />
                                 {msg.action && (
-                                    <Link to={msg.action.url} className="action-btn-link">
-                                        {msg.action.label}
-                                    </Link>
+                                    msg.action.url.startsWith('http') ? (
+                                        <a href={msg.action.url} target="_blank" rel="noopener noreferrer" className="action-btn-link">
+                                            {msg.action.label}
+                                        </a>
+                                    ) : (
+                                        <Link to={msg.action.url} className="action-btn-link">
+                                            {msg.action.label}
+                                        </Link>
+                                    )
                                 )}
                                 {msg.options && (
                                     <div className="options-container">

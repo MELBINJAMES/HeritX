@@ -18,9 +18,9 @@ export const fetchItems = async (occasion = '') => {
     }
 };
 
-export const fetchDashboardSummary = async () => {
+export const fetchDashboardSummary = async (userId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/rentals.php?action=summary`);
+        const response = await fetch(`${API_BASE_URL}/rentals.php?action=summary&user_id=${userId}`);
         return await response.json();
     } catch (error) {
         console.error("Failed to fetch summary", error);
@@ -28,9 +28,9 @@ export const fetchDashboardSummary = async () => {
     }
 };
 
-export const fetchMyRentals = async () => {
+export const fetchMyRentals = async (userId) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/rentals.php`);
+        const response = await fetch(`${API_BASE_URL}/rentals.php?user_id=${userId}`);
         return await response.json();
     } catch (error) {
         console.error("Failed to fetch rentals", error);
@@ -38,9 +38,9 @@ export const fetchMyRentals = async () => {
     }
 };
 
-export const fetchPayments = async () => {
+export const fetchPayments = async (userId) => {
     try {
-        const response = await fetch(PAYMENTS_API_URL);
+        const response = await fetch(`${PAYMENTS_API_URL}?user_id=${userId}`);
         return await response.json();
     } catch (error) {
         console.error("Failed to fetch payments", error);

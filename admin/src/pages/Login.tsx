@@ -37,7 +37,7 @@ const Login = ({ role }: LoginProps) => {
           console.log('Google User logged in:', userData)
 
           if (role === 'Finder') {
-            window.location.href = 'http://127.0.0.1:3000/dashboard';
+            window.location.href = 'http://localhost:3000/dashboard';
           } else {
             navigate('/shop-owner/dashboard');
           }
@@ -50,7 +50,7 @@ const Login = ({ role }: LoginProps) => {
       }
     },
     onError: () => {
-      alert('Google sign-in failed. Please try again.')
+      setError('Google sign-in failed. Please try again.')
     },
   })
 
@@ -84,7 +84,7 @@ const Login = ({ role }: LoginProps) => {
           navigate('/admin/dashboard');
         } else if (data.user.role === 'Finder') {
           // Redirect to the external User Dashboard (Protected Area)
-          window.location.href = 'http://127.0.0.1:3000/dashboard';
+          window.location.href = 'http://localhost:3000/dashboard';
         } else {
           navigate('/shop-owner/dashboard');
         }
@@ -156,7 +156,7 @@ const Login = ({ role }: LoginProps) => {
       )}
       <div className="auth-card">
         <div className="auth-card-header">
-          <a href="http://127.0.0.1:3000" className="back-arrow" aria-label="Back to home">
+          <a href="http://localhost:3000" className="back-arrow" aria-label="Back to home">
             ←
           </a>
           <div className="brand compact">

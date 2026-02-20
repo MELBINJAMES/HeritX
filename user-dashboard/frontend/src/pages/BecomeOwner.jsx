@@ -13,7 +13,7 @@ const BecomeOwner = () => {
                 </p>
 
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
-                    <a href="http://localhost:5173/shop-owner/login" style={{
+                    <a href="http://localhost:5174/shop-owner/login" style={{
                         padding: '15px 40px',
                         backgroundColor: '#1a1a1a',
                         color: 'white',
@@ -25,7 +25,7 @@ const BecomeOwner = () => {
                         Login as Owner
                     </a>
 
-                    <a href="http://localhost:5173/register/owner" style={{
+                    <a href="http://localhost:5174/register/owner" style={{
                         padding: '15px 40px',
                         backgroundColor: 'white',
                         color: '#1a1a1a',

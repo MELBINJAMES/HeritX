@@ -14,7 +14,7 @@ if ($id > 0) {
                 p.instagram_url, p.facebook_url, p.opening_time, p.closing_time, p.working_days,
                 p.rental_terms, p.late_fee_policy, p.bank_details, p.tax_id, p.operating_hours,
                 p.default_deposit_percent
-            FROM shopowners s
+            FROM users s
             LEFT JOIN owner_profile p ON s.id = p.owner_id
             WHERE s.id = ?";
             
@@ -27,7 +27,7 @@ if ($id > 0) {
     // Fallback: If profile doesn't exist yet but user does, return partial data
     if (!$data) {
         // Try fetch just user to see if ID is valid
-         $stmt2 = $conn->prepare("SELECT id, name, email FROM shopowners WHERE id = ?");
+         $stmt2 = $conn->prepare("SELECT id, name, email FROM users WHERE id = ?");
          $stmt2->bind_param("i", $id);
          $stmt2->execute();
          $res2 = $stmt2->get_result();

@@ -59,7 +59,7 @@ const Login = () => {
 
                 // Role Based Redirect
                 if (data.user.role === 'admin') {
-                    window.location.href = 'http://localhost:5173/admin/dashboard';
+                    window.location.href = 'http://localhost:5174/admin/dashboard';
                     return;
                 }
 
@@ -202,7 +202,7 @@ const Login = () => {
                 </form>
 
                 <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '0.9rem', color: '#64748b' }}>
-                    Don't have an account? <a href="http://localhost:5173/register/finder" style={{ color: '#1a1a1a', fontWeight: '600', textDecoration: 'none' }}>Sign Up</a>
+                    Don't have an account? <a href="http://localhost:5174/register/finder" style={{ color: '#1a1a1a', fontWeight: '600', textDecoration: 'none' }}>Sign Up</a>
                 </div>
             </div>
         </div>

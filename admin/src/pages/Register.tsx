@@ -33,7 +33,7 @@ const Register = ({ defaultRole = 'Shop Owner', lockRole = false }: RegisterProp
       navigate(target)
     },
     onError: () => {
-      alert('Google signup failed. Please try again.')
+      setError('Google signup failed. Please try again.')
     },
   })
 
@@ -199,9 +199,9 @@ const Register = ({ defaultRole = 'Shop Owner', lockRole = false }: RegisterProp
 
       <div className="auth-card">
         <div className="auth-card-header">
-          <Link to="/" className="back-arrow" aria-label="Back to home">
+          <a href="http://localhost:3000" className="back-arrow" aria-label="Back to home">
             ←
-          </Link>
+          </a>
           <div className="brand compact">
             <span className="logo-mark" aria-hidden="true" />
             <span className="logo-text">HeritX</span>

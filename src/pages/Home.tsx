@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom'
+
+
+import React from 'react';
 
 const Home = () => {
   return (
@@ -24,12 +26,12 @@ const Home = () => {
         </div>
 
         <div className="cta-row">
-          <Link to="/shop-owner/login" className="cta-button primary">
+          <a href="http://localhost:5174/shop-owner/login" className="cta-button primary">
             Let&apos;s start with shop owner
-          </Link>
-          <Link to="/finder/login" className="cta-button ghost">
+          </a>
+          <a href="http://localhost:3000/login" className="cta-button ghost">
             Let&apos;s start with finder
-          </Link>
+          </a>
         </div>
       </div>
     </div>

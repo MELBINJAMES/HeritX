@@ -1,43 +1,43 @@
-/* Chatbot Floating Button */
+/* Chatbot Floating Button - Clean Black & White */
 .chatbot-toggle {
     position: fixed;
     bottom: 30px;
     right: 30px;
     width: 60px;
     height: 60px;
-    background-color: #1a1a1a;
-    color: white;
+    background-color: #000000;
+    color: #ffffff;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), 0 0 0 2px rgba(255, 255, 255, 0.2);
     z-index: 9999;
-    transition: transform 0.3s ease;
+    transition: all 0.3s ease;
+    border: 2px solid white;
 }
 
 .chatbot-toggle:hover {
-    transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 0 4px rgba(255, 255, 255, 0.3);
+    background-color: #1a1a1a;
 }
 
-.chatbot-toggle.footer-active:hover {
-    background-color: #f0f0f0;
-    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.5);
-    transform: scale(1.1) rotate(-5deg);
+.chatbot-toggle::after {
+    /* Removed pulse-ring to keep it clean and aligned */
+    content: none;
 }
+
 
 .chatbot-icon {
     font-size: 28px;
+    filter: none;
 }
 
-/* Invert colors when over dark footer */
-.chatbot-toggle.footer-active {
-    background-color: white;
-    color: #1a1a1a;
-    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
-}
+/* Ensure visibility on dark backgrounds via the white border */
+
+/* Footer active override removed - Gold stands out everywhere */
 
 /* Chatbot Window */
 .chatbot-window {
@@ -140,6 +140,28 @@
     background-color: #1a1a1a;
     color: white;
     border-bottom-right-radius: 2px;
+}
+
+/* Chat Item Image */
+.chat-item-image {
+    width: 100%;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.chat-item-image img {
+    width: 100%;
+    height: auto;
+    display: block;
+    max-height: 150px;
+    object-fit: cover;
+}
+
+.chat-item-desc {
+    font-size: 0.85rem;
+    color: #555;
+    margin-top: 5px;
 }
 
 /* Options / Chips */

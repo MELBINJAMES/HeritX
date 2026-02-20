@@ -78,7 +78,7 @@ if (strlen($description) < 10) {
 // Handle Image Upload
 $image_url = '';
 if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-    $uploadDir = __DIR__ . '/../../../user-dashboard/frontend/public/uploads/';
+    $uploadDir = __DIR__ . '/../../../uploads/';
     
     // Create directory if not exists
     if (!file_exists($uploadDir)) {

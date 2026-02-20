@@ -30,7 +30,7 @@ const BrowseItems = () => {
     const handleWishlistToggle = async (e, itemId) => {
         e.preventDefault();
         if (!isAuthenticated) {
-            alert(t('login_required') || "Please login to add items to wishlist");
+            toast.error(t('login_required') || "Please login to add items to wishlist");
             return;
         }
 

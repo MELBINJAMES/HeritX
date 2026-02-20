@@ -5,7 +5,12 @@ header("Content-Type: application/json");
 
 require_once '../config/db.php';
 
-$user_id = 1; // Mock User ID
+$user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
+
+if ($user_id <= 0) {
+    echo json_encode(["error" => "Invalid User ID"]);
+    exit;
+}
 
 try {
     $stmt = $pdo->prepare("

@@ -1,19 +1,22 @@
 /* HertiX Calendar Overrides - Refined & Compact */
 .availability-calendar-container {
     background: white;
-    padding: 12px;
+    padding: 10px;
     border-radius: 12px;
     border: 1px solid #eef2f6;
     margin-top: 15px;
     width: 100%;
-    max-width: 650px;
-    /* Increased to allow side-by-side */
+    max-width: 350px;
+    /* Reduced width */
+    transform: scale(0.95);
+    /* Slight scale down */
+    transform-origin: top left;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .availability-calendar-container h3 {
-    font-size: 1rem !important;
-    margin-bottom: 12px !important;
+    font-size: 0.95rem !important;
+    margin-bottom: 10px !important;
     font-weight: 700 !important;
 }
 
@@ -25,15 +28,15 @@
 }
 
 .react-calendar__navigation {
-    height: 35px !important;
-    margin-bottom: 10px !important;
+    height: 30px !important;
+    margin-bottom: 5px !important;
 }
 
 .react-calendar__navigation button {
     color: #1a1a1a;
-    min-width: 30px !important;
+    min-width: 25px !important;
     background: none;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     font-weight: 600;
 }
 
@@ -45,7 +48,7 @@
 .react-calendar__month-view__weekdays {
     text-transform: uppercase;
     font-weight: bold;
-    font-size: 0.7rem;
+    font-size: 0.65rem;
     color: #94a3b8;
     padding-bottom: 5px;
 }
@@ -55,11 +58,11 @@
 }
 
 .react-calendar__tile {
-    padding: 6px 2px !important;
+    padding: 4px 2px !important;
     /* Reduced padding for height */
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     border-radius: 6px;
-    height: 34px !important;
+    height: 30px !important;
     /* Fixed height for consistency */
     display: flex;
     align-items: center;
@@ -139,4 +142,43 @@ input[type="time"] {
 
 input[type="time"]:focus {
     border-color: #1a1a1a !important;
+}
+
+/* --- Added for Realistic Calendar --- */
+
+/* Dot Indicators */
+.dot-indicator {
+    height: 4px;
+    width: 4px;
+    border-radius: 50%;
+    margin: 2px auto 0;
+}
+
+.dot-indicator.booked {
+    background-color: #ef4444;
+}
+
+/* Disabled/Booked Tile Styling */
+.react-calendar__tile:disabled {
+    background-color: #f8fafc !important;
+    color: #cbd5e1 !important;
+    cursor: not-allowed !important;
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+/* Specific style for dates that are disabled because they are booked */
+.react-calendar__tile:disabled:has(.dot-indicator.booked) {
+    background-image: repeating-linear-gradient(45deg,
+            #f8fafc,
+            #f8fafc 10px,
+            #f1f5f9 10px,
+            #f1f5f9 20px) !important;
+    color: #ef4444 !important;
+    font-weight: 500;
+}
+
+/* Weekend Styling */
+.react-calendar__month-view__days__day--weekend {
+    color: #64748b !important;
 }

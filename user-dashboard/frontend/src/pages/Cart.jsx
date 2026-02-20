@@ -133,16 +133,17 @@ const Cart = () => {
                             <span style={{ fontWeight: 'bold' }}>Total</span>
                             <span style={{ fontWeight: 'bold' }}>₹{calculateTotal()}</span>
                         </div>
-                        <button
-                            onClick={() => toast.success("Payment system coming soon! Follow us for updates.")}
-                            style={{
-                                width: '100%', padding: '15px', background: '#1a1a1a', color: 'white',
-                                border: 'none', borderRadius: '30px', fontSize: '1rem', fontWeight: 'bold',
-                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
-                            }}
-                        >
-                            Proceed to Checkout <FaArrowRight />
-                        </button>
+                        <Link to="/checkout" style={{ textDecoration: 'none' }}>
+                            <button
+                                style={{
+                                    width: '100%', padding: '15px', background: '#1a1a1a', color: 'white',
+                                    border: 'none', borderRadius: '30px', fontSize: '1rem', fontWeight: 'bold',
+                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
+                                }}
+                            >
+                                Proceed to Checkout <FaArrowRight />
+                            </button>
+                        </Link>
                     </div>
                 </div>
             )}

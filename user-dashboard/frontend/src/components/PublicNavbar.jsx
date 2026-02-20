@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useCart } from '../context/CartContext';
 import { fetchNotifications } from '../services/api';
+import toast from 'react-hot-toast';
 import '../styles/Navbar.css';
 
 const PublicNavbar = () => {
@@ -205,7 +206,7 @@ const PublicNavbar = () => {
                             <div
                                 onClick={() => {
                                     if (!user) {
-                                        alert(t('login_required') || "Please login to view cart");
+                                        toast.error(t('login_required') || "Please login to view cart");
                                         return;
                                     }
                                     navigate('/cart');
@@ -272,7 +273,7 @@ const PublicNavbar = () => {
                                 {/* Cart for Unauthenticated */}
                                 <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginRight: '10px' }}>
                                     <FaShoppingCart
-                                        onClick={() => alert(t('login_required') || "Please login to view cart")}
+                                        onClick={() => toast.error(t('login_required') || "Please login to view cart")}
                                         style={{ cursor: 'pointer', fontSize: '1.2rem', color: '#1a1a1a' }}
                                         title="Cart"
                                     />
@@ -288,7 +289,7 @@ const PublicNavbar = () => {
                                 }}>
                                     Login
                                 </Link>
-                                <a href="http://localhost:5173/register/finder" style={{
+                                <a href="http://localhost:5174/register/finder" style={{
                                     padding: '8px 20px',
                                     background: '#1a1a1a',
                                     borderRadius: '20px',

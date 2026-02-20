@@ -503,6 +503,40 @@ body {
     background: var(--saas-primary-hover);
 }
 
+
+/* Generic Button Classes */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    white-space: nowrap;
+}
+
+.btn-outline {
+    border-color: var(--saas-border);
+    background: #fff;
+    color: var(--saas-text-main);
+}
+
+.btn-outline:hover {
+    border-color: var(--saas-primary);
+    color: var(--saas-primary);
+    background: #f8fafc;
+}
+
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+}
+
 /* Categories Grid specific */
 .categories-management-grid {
     display: grid;

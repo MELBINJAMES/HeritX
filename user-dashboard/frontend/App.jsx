@@ -14,6 +14,10 @@ import Profile from './src/pages/Profile';
 import Notifications from './src/pages/Notifications';
 import Wishlist from './src/pages/Wishlist';
 import Cart from './src/pages/Cart';
+import Checkout from './src/pages/Checkout';
+import PaymentSuccess from './src/pages/PaymentSuccess';
+import BankGateway from './src/pages/BankGateway';
+import UPIGateway from './src/pages/UPIGateway';
 import CulturalGuidance from './src/pages/CulturalGuidance';
 import Login from './src/pages/Login';
 import ForgotPassword from './src/pages/ForgotPassword';
@@ -48,6 +52,10 @@ function App() {
                     <Route path="/item/:id" element={<ItemDetails />} />
                     <Route path="/become-owner" element={<BecomeOwner />} />
                     <Route path="/cart" element={<Cart />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/payment-success" element={<PaymentSuccess />} />
+                    <Route path="/bank-gateway" element={<BankGateway />} />
+                    <Route path="/upi-gateway" element={<UPIGateway />} />
 
                     {/* Legal & Support Routes */}
                     <Route path="/help" element={<HelpCenter />} />

@@ -5,12 +5,19 @@ header("Content-Type: application/json");
 
 include '../../../admin/public/api/db.php';
 
-$user_id = 1; // Mock User ID for MVP
+$user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
+
+if ($user_id <= 0) {
+    echo json_encode(["summary" => [], "history" => [], "error" => "Invalid User ID"]);
+    exit;
+}
 
 try {
     // Fetch History
+    // Fetch History
     $history = [];
-    $stmt = $conn->prepare("SELECT id, transaction_date, amount, payment_type, status FROM payments WHERE user_id = ? ORDER BY transaction_date DESC");
+    // Format date as "18 Feb 2026"
+    $stmt = $conn->prepare("SELECT id, DATE_FORMAT(transaction_date, '%d %M %Y') as transaction_date, amount, payment_type, status FROM payments WHERE user_id = ? ORDER BY transaction_date DESC");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $result = $stmt->get_result();
