@@ -1,137 +1,137 @@
 <?php
 header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
+// Use the shared admin db.php (mysqli) — consistent with other admin APIs
 require_once '../../../admin/public/api/db.php';
 
-// Profile logic uses target_id dynamically. Removed mock user_id.
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { exit(0); }
+
+$target_id = $_REQUEST['user_id'] ?? $_REQUEST['id'] ?? null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Determine if it's JSON or FormData
     $contentType = $_SERVER["CONTENT_TYPE"] ?? '';
-    
-    if (strpos($contentType, "application/json") !== false) {
-        $data = json_decode(file_get_contents("php://input"), true);
-    } else {
-        $data = $_POST;
-    }
-
-    // Get User ID from Request (POST or GET)
-    $target_id = $_REQUEST['user_id'] ?? $_REQUEST['id'] ?? null;
+    $data = strpos($contentType, "application/json") !== false
+        ? json_decode(file_get_contents("php://input"), true)
+        : $_POST;
 
     if (!$target_id) {
         echo json_encode(["success" => false, "message" => "User ID is required"]);
         exit;
-    } 
+    }
 
-    $name = $data['name'] ?? '';
-    $phone = $data['phone'] ?? '';
-    $address = $data['address'] ?? '';
-    $location = $data['location'] ?? '';
-    $gender = $data['gender'] ?? '';
-    $dob = $data['dob'] ?? '';
-    $bio = $data['bio'] ?? '';
-
-    // Handle Password Change Action
+    // ── PASSWORD CHANGE ──────────────────────────────────────────────────────
     if (isset($_GET['action']) && $_GET['action'] === 'change_password') {
         $currentPassword = $data['current_password'] ?? '';
-        $newPassword = $data['new_password'] ?? '';
+        $newPassword     = $data['new_password'] ?? '';
 
-        // Validation
         if (empty($currentPassword) || empty($newPassword)) {
-            echo json_encode(["success" => false, "message" => "All password fields are required"]);
-            exit;
+            echo json_encode(["success" => false, "message" => "All password fields are required"]); exit;
         }
-
-        // Complexity Validation
         if (strlen($newPassword) < 8) {
-            echo json_encode(["success" => false, "message" => "New password must be at least 8 characters"]);
-            exit;
+            echo json_encode(["success" => false, "message" => "New password must be at least 8 characters"]); exit;
         }
         if (!preg_match('/[A-Z]/', $newPassword)) {
-            echo json_encode(["success" => false, "message" => "New password must contain at least one uppercase letter"]);
-            exit;
+            echo json_encode(["success" => false, "message" => "Password must contain at least one uppercase letter"]); exit;
         }
         if (!preg_match('/[a-z]/', $newPassword)) {
-            echo json_encode(["success" => false, "message" => "New password must contain at least one lowercase letter"]);
-            exit;
+            echo json_encode(["success" => false, "message" => "Password must contain at least one lowercase letter"]); exit;
         }
 
-        // Check current password
         $stmt = $conn->prepare("SELECT password FROM users WHERE id = ?");
         $stmt->bind_param("i", $target_id);
         $stmt->execute();
-        $result = $stmt->get_result();
-        $userRow = $result->fetch_assoc();
+        $userRow = $stmt->get_result()->fetch_assoc();
+        $stmt->close();
 
         if ($userRow && password_verify($currentPassword, $userRow['password'])) {
             $hashedNew = password_hash($newPassword, PASSWORD_DEFAULT);
             $upd = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
             $upd->bind_param("si", $hashedNew, $target_id);
-            if ($upd->execute()) {
-                echo json_encode(["success" => true, "message" => "Password updated successfully"]);
-            } else {
-                echo json_encode(["success" => false, "message" => "Failed to update password"]);
-            }
+            echo json_encode(["success" => $upd->execute(), "message" => $upd->execute() ? "Password updated" : "Failed to update"]);
             $upd->close();
         } else {
             echo json_encode(["success" => false, "message" => "Current password is incorrect"]);
         }
-        $stmt->close();
         exit;
     }
-    
-    // Handle Image Upload
+
+    // ── PROFILE UPDATE ───────────────────────────────────────────────────────
+    $name     = $data['name']     ?? '';
+    $phone    = $data['phone']    ?? '';
+    $address  = $data['address']  ?? '';
+    $location = $data['location'] ?? '';
+    $gender   = $data['gender']   ?? '';
+    $dob      = $data['dob']      ?? '';
+    $bio      = $data['bio']      ?? '';
+    $offer_msg= $data['offer_message'] ?? '';
+
+    // Check if the offer_message has changed to send a notification
+    $stmt_old = $conn->prepare("SELECT offer_message, name FROM users WHERE id = ?");
+    $stmt_old->bind_param("i", $target_id);
+    $stmt_old->execute();
+    $oldRow = $stmt_old->get_result()->fetch_assoc();
+    $stmt_old->close();
+
+    $old_offer_msg = $oldRow['offer_message'] ?? '';
+    $shop_name = $oldRow['name'] ?? 'A shop';
+
+    if ($offer_msg !== '' && $offer_msg !== $old_offer_msg) {
+        // Offer message changed and is not empty. Notify all renters.
+        $renter_stmt = $conn->prepare("SELECT id FROM users WHERE role = 'renter'");
+        $renter_stmt->execute();
+        $renters = $renter_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $renter_stmt->close();
+
+        $notif_title = "New Offer from " . $shop_name . "!";
+        $notif_msg = $offer_msg;
+        
+        $insert_notif = $conn->prepare("INSERT INTO notifications (user_id, title, message) VALUES (?, ?, ?)");
+        foreach ($renters as $r) {
+            $insert_notif->bind_param("iss", $r['id'], $notif_title, $notif_msg);
+            $insert_notif->execute();
+        }
+        $insert_notif->close();
+    }
+
     $imagePath = null;
     if (isset($_FILES['profile_image']) && $_FILES['profile_image']['error'] === UPLOAD_ERR_OK) {
-        $uploadDir = '../../../uploads/profiles/';
+        $uploadDir = __DIR__ . '/../../../uploads/profiles/';
         if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
-        
         $filename = uniqid() . '_' . basename($_FILES['profile_image']['name']);
-        $targetFile = $uploadDir . $filename;
-        
-        if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $targetFile)) {
-            // Save relative URL for frontend
+        if (move_uploaded_file($_FILES['profile_image']['tmp_name'], $uploadDir . $filename)) {
             $imagePath = 'http://localhost/HertiX/uploads/profiles/' . $filename;
         }
     }
 
-    // Build Query dynamically based on if image is updated
     if ($imagePath) {
-        $stmt = $conn->prepare("UPDATE users SET name = ?, phone = ?, address = ?, location = ?, gender = ?, dob = ?, bio = ?, profile_image = ? WHERE id = ?");
-        $stmt->bind_param("ssssssssi", $name, $phone, $address, $location, $gender, $dob, $bio, $imagePath, $target_id);
+        $stmt = $conn->prepare("UPDATE users SET name=?,phone=?,address=?,location=?,gender=?,dob=?,bio=?,offer_message=?,profile_image=? WHERE id=?");
+        $stmt->bind_param("sssssssssi", $name, $phone, $address, $location, $gender, $dob, $bio, $offer_msg, $imagePath, $target_id);
     } else {
-        $stmt = $conn->prepare("UPDATE users SET name = ?, phone = ?, address = ?, location = ?, gender = ?, dob = ?, bio = ? WHERE id = ?");
-        $stmt->bind_param("sssssssi", $name, $phone, $address, $location, $gender, $dob, $bio, $target_id);
+        $stmt = $conn->prepare("UPDATE users SET name=?,phone=?,address=?,location=?,gender=?,dob=?,bio=?,offer_message=? WHERE id=?");
+        $stmt->bind_param("ssssssssi", $name, $phone, $address, $location, $gender, $dob, $bio, $offer_msg, $target_id);
     }
-    
-    if ($stmt->execute()) {
-        echo json_encode(["success" => true, "message" => "Profile updated successfully", "image_url" => $imagePath]);
-    } else {
-        echo json_encode(["success" => false, "message" => "Failed to update profile: " . $stmt->error]);
-    }
+
+    echo json_encode([
+        "success"   => $stmt->execute(),
+        "message"   => $stmt->execute() ? "Profile updated successfully" : "Failed: " . $stmt->error,
+        "image_url" => $imagePath
+    ]);
     $stmt->close();
+
 } else {
-    // Get Profile
-    // target_id is already set from above request check
+    // ── GET PROFILE ──────────────────────────────────────────────────────────
     if (!$target_id) {
-         $target_id = $_GET['user_id'] ?? null;
-         if (!$target_id) {
-            echo json_encode(["error" => "User ID is required"]);
-            exit;
-         }
-    } 
-    $stmt = $conn->prepare("SELECT id, name, email, phone, address, location, gender, dob, bio, profile_image, role, created_at FROM users WHERE id = ?");
+        echo json_encode(["error" => "User ID is required"]); exit;
+    }
+    $stmt = $conn->prepare("SELECT id, name, email, phone, address, location, gender, dob, bio, offer_message, profile_image, role, created_at FROM users WHERE id = ?");
     $stmt->bind_param("i", $target_id);
     $stmt->execute();
-    $result = $stmt->get_result();
-
-    if ($row = $result->fetch_assoc()) {
-        echo json_encode($row);
-    } else {
-        echo json_encode(["error" => "User not found"]);
-    }
+    $row = $stmt->get_result()->fetch_assoc();
     $stmt->close();
+
+    echo json_encode($row ?: ["error" => "User not found"]);
 }
 ?>

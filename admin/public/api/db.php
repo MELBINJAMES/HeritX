@@ -10,7 +10,7 @@ ini_set('display_errors', 0);
 $servername = "127.0.0.1";
 $username = "root";
 $password = "";
-$dbname = "Heritx";
+$dbname = "HeritX";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 

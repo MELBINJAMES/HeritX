@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchProfile } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Profile.css';
+import toast from '../utils/toast';
 
 const Profile = () => {
     const { user } = useAuth();
@@ -27,12 +28,9 @@ const Profile = () => {
         return null;
     };
 
-    // Toast State
-    const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
-
     const showNotification = (message, type = 'success') => {
-        setToast({ show: true, message, type });
-        setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+        if (type === 'success') toast.success(message);
+        else toast.error(message);
     };
 
     useEffect(() => {
@@ -324,6 +322,12 @@ const Profile = () => {
                                 <label className="form-label">Bio (Public)</label>
                                 <textarea name="bio" value={profile.bio || ''} onChange={handleChange} className="form-input form-textarea" rows={3} placeholder="Tell us about yourself..." />
                             </div>
+                            {user?.role === 'shop_owner' && (
+                                <div className="form-group full-width">
+                                    <label className="form-label">Shop Offer Message (Public & Alerts Users)</label>
+                                    <textarea name="offer_message" value={profile.offer_message || ''} onChange={handleChange} className="form-input form-textarea" rows={2} placeholder="e.g. Get 5% off on all rentals this weekend only! (Updating this alerts all users)" style={{ borderColor: '#d97706', backgroundColor: '#fffbeb' }} />
+                                </div>
+                            )}
                         </div>
 
                         <div style={{ textAlign: 'right', marginTop: '20px' }}>
@@ -394,13 +398,7 @@ const Profile = () => {
 
             </div>
 
-            {/* Custom Toast Notification */}
-            {toast.show && (
-                <div className={`toast-notification ${toast.type}`}>
-                    <span>{toast.type === 'success' ? '✅' : '⚠️'}</span>
-                    {toast.message}
-                </div>
-            )}
+            {/* Custom Toast Notification handled globally */}
         </div>
     );
 };

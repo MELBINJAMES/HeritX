@@ -37,7 +37,7 @@ const Login = ({ role }: LoginProps) => {
           console.log('Google User logged in:', userData)
 
           if (role === 'Finder') {
-            window.location.href = 'http://localhost:3000/dashboard';
+            window.location.href = 'http://localhost:3001/dashboard';
           } else {
             navigate('/shop-owner/dashboard');
           }
@@ -84,7 +84,7 @@ const Login = ({ role }: LoginProps) => {
           navigate('/admin/dashboard');
         } else if (data.user.role === 'Finder') {
           // Redirect to the external User Dashboard (Protected Area)
-          window.location.href = 'http://localhost:3000/dashboard';
+          window.location.href = 'http://localhost:3001/dashboard';
         } else {
           navigate('/shop-owner/dashboard');
         }
@@ -156,12 +156,12 @@ const Login = ({ role }: LoginProps) => {
       )}
       <div className="auth-card">
         <div className="auth-card-header">
-          <a href="http://localhost:3000" className="back-arrow" aria-label="Back to home">
+          <a href="http://localhost:3001" className="back-arrow" aria-label="Back to home">
             ←
           </a>
-          <div className="brand compact">
-            <span className="logo-mark" aria-hidden="true" />
-            <span className="logo-text">HeritX</span>
+          <div className="brand compact" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <span style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'Georgia, serif', letterSpacing: '1px', lineHeight: 1.1, color: '#1e293b' }}>HeritX</span>
+            <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '3px', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>Wear the Legacy</span>
           </div>
         </div>
         <h1 className="auth-title">Welcome back, {role}</h1>
@@ -184,6 +184,7 @@ const Login = ({ role }: LoginProps) => {
           <label className="field">
             <span>Email</span>
             <input
+              id="email-input"
               required
               type="email"
               value={email}
@@ -195,6 +196,7 @@ const Login = ({ role }: LoginProps) => {
             <span>Password</span>
             <div style={{ position: 'relative' }}>
               <input
+                id="password-input"
                 required
                 type={showPassword ? 'text' : 'password'}
                 value={password}
@@ -221,7 +223,7 @@ const Login = ({ role }: LoginProps) => {
               </button>
             </div>
           </label>
-          <button className="cta-button primary full" type="submit">
+          <button id="submit-btn" className="cta-button primary full" type="submit">
             Sign in
           </button>
         </form>
@@ -230,7 +232,7 @@ const Login = ({ role }: LoginProps) => {
           <Link to={`/forgot-password?role=${role === 'Shop Owner' ? 'owner' : 'finder'}`}>Forgot password?</Link>
           <span className="muted">
             Don&apos;t have an account?{' '}
-            <Link to={role === 'Shop Owner' ? '/register/owner' : '/register/finder'}>
+            <Link id="register-btn" to={role === 'Shop Owner' ? '/register/owner' : '/register/finder'}>
               Register
             </Link>
           </span>

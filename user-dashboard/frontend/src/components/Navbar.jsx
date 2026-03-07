@@ -5,8 +5,9 @@ const Navbar = ({ activeTab, setActiveTab }) => {
     return (
         <nav className="navbar">
             <div className="navbar-container">
-                <div className="logo" onClick={() => setActiveTab('dashboard')}>
-                    HeritX
+                <div className="logo" onClick={() => setActiveTab('dashboard')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', cursor: 'pointer' }}>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'Georgia, serif', letterSpacing: '1px', lineHeight: 1.1, color: '#1e293b' }}>HeritX</span>
+                    <span style={{ fontSize: '0.55rem', textTransform: 'uppercase', letterSpacing: '2.5px', color: '#64748b', fontWeight: 600 }}>Wear the Legacy</span>
                 </div>
 
                 <div className="nav-links">

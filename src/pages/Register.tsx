@@ -8,9 +8,9 @@ type RegisterProps = {
 const Register = ({ defaultRole = 'Shop Owner' }: RegisterProps) => {
   useEffect(() => {
     if (defaultRole === 'Shop Owner') {
-      window.location.href = 'http://localhost:5174/register/owner';
+      window.location.href = 'http://localhost:3002/register/owner';
     } else {
-      window.location.href = 'http://localhost:5174/register/finder';
+      window.location.href = 'http://localhost:3001/register/finder';
     }
   }, [defaultRole]);
 

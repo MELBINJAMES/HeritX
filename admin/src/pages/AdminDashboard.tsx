@@ -59,7 +59,6 @@ const AdminDashboard = () => {
     const [ownersList, setOwnersList] = useState<User[]>([]);
     const [itemsList, setItemsList] = useState<Item[]>([]); // All items
     const [pendingOwners, setPendingOwners] = useState<User[]>([]);
-    const [pendingItems, setPendingItems] = useState<Item[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [logs, setLogs] = useState<Log[]>([]);
     const [loading, setLoading] = useState(true); // Now used
@@ -119,11 +118,6 @@ const AdminDashboard = () => {
                 const data = await res.json();
                 if (data.status === 'success') setPendingOwners(data.owners);
             }
-            else if (activeTab === 'pending') {
-                const res = await fetch(`${API}?action=pending_items`);
-                const data = await res.json();
-                if (data.status === 'success') setPendingItems(data.items);
-            }
             else if (activeTab === 'categories') {
                 const res = await fetch(`${API}?action=get_categories`);
                 const data = await res.json();
@@ -172,12 +166,12 @@ const AdminDashboard = () => {
         );
     }
 
-    if (user.role !== 'admin') {
+    if (user.role !== 'admin' && user.role !== 'Shop Owner') {
         return (
             <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#fef2f2', color: '#991b1b' }}>
                 <h2 style={{ fontSize: '2rem' }}>🚫 Access Denied</h2>
                 <p style={{ marginBottom: '1rem', fontSize: '1.1rem' }}>You are logged in as <strong>{user.role}</strong>.</p>
-                <p style={{ marginBottom: '2rem', color: '#b91c1c' }}>This area is restricted to Administrators only.</p>
+                <p style={{ marginBottom: '2rem', color: '#b91c1c' }}>This area is restricted to Administrators and Shop Owners only.</p>
                 <button onClick={logout} style={{ padding: '0.75rem 1.5rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
                     Logout & Switch Account
                 </button>
@@ -233,7 +227,6 @@ const AdminDashboard = () => {
     const filteredOwners = getFilteredData(ownersList, ['name', 'email']);
     const filteredUsers = getFilteredData(usersList, ['name', 'email']);
     const filteredItems = getFilteredData(itemsList, ['name', 'category', 'owner_name']); // Filter for all items
-    const filteredPendingItems = getFilteredData(pendingItems, ['name', 'owner_name', 'category']);
     const filteredCategories = getFilteredData(categories, ['name']);
     const filteredLogs = getFilteredData(logs, ['action', 'details']);
 
@@ -244,7 +237,13 @@ const AdminDashboard = () => {
             {/* Sidebar */}
             <aside className="admin-sidebar">
                 <div className="sidebar-header">
-                    <h2 className="brand-title">HERITX <span style={{ fontWeight: 400, opacity: 0.7 }}>ADMIN</span></h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <a href="http://localhost:3001" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textDecoration: 'none', color: 'inherit' }}>
+                            <span style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'Georgia, serif', letterSpacing: '1px', lineHeight: 1.1, color: '#1e293b' }}>HeritX</span>
+                            <span style={{ fontSize: '0.55rem', textTransform: 'uppercase', letterSpacing: '2.5px', color: '#64748b', fontWeight: 600 }}>Wear the Legacy</span>
+                        </a>
+                        <span style={{ fontWeight: 400, opacity: 0.7, fontSize: '1.1rem', color: '#1e293b' }}>ADMIN</span>
+                    </div>
                 </div>
 
                 <nav className="nav-menu">
@@ -254,7 +253,6 @@ const AdminDashboard = () => {
                         ['owners', 'All Shops', '🏪'],
                         ['users', 'Customers', '👥'],
                         ['items', 'Invt. Items', '📦'], // New Tab
-                        ['pending', 'Item Approvals', '⏳'],
                         ['categories', 'Catalog Config', '🏷️'],
                         ['logs', 'System Logs', '📜']
                     ].map(([key, label, icon]) => (
@@ -279,18 +277,23 @@ const AdminDashboard = () => {
             {/* Main Layout Column */}
             <main className="admin-main">
                 <header className="top-header">
-                    <div className="search-bar">
-                        <input
-                            type="text"
-                            className="search-input"
-                            placeholder={`Search ${activeTab.replace(/_/g, ' ')}...`}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                        <button className="btn-search-trigger" title="Search">
-                            🔍
-                        </button>
-                    </div>
+                    {/* Only show search bar on lists, hide on main dashboard */}
+                    {activeTab === 'dashboard' ? (
+                        <div style={{ width: '400px' }}></div> /* Placeholder to maintain header flex layout */
+                    ) : (
+                        <div className="search-bar">
+                            <input
+                                type="text"
+                                className="search-input"
+                                placeholder={`Search ${activeTab.replace(/_/g, ' ')}...`}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            <button className="btn-search-trigger" title="Search">
+                                🔍
+                            </button>
+                        </div>
+                    )}
 
                     <div className="header-right">
                         <div style={{ position: 'relative' }}>
@@ -299,7 +302,7 @@ const AdminDashboard = () => {
                                 onClick={() => setShowNotifications(!showNotifications)}
                             >
                                 🔔
-                                {((stats.pending_owners || 0) + (stats.pending_items || 0)) > 0 && (
+                                {((stats.pending_owners || 0)) > 0 && (
                                     <span style={{
                                         position: 'absolute',
                                         top: 0,
@@ -345,21 +348,8 @@ const AdminDashboard = () => {
                                             </div>
                                         ) : null}
 
-                                        {/* Pending Items */}
-                                        {(stats.pending_items || 0) > 0 ? (
-                                            <div
-                                                onClick={() => { setActiveTab('pending'); setShowNotifications(false); }}
-                                                style={{ padding: '10px 15px', borderBottom: '1px solid #f1f5f9', cursor: 'pointer', fontSize: '0.9rem' }}
-                                                onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
-                                                onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
-                                            >
-                                                <div style={{ fontWeight: 500, color: '#d97706' }}>⏳ Item Approvals</div>
-                                                <div style={{ color: '#64748b', fontSize: '0.8rem' }}>{stats.pending_items} item(s) waiting</div>
-                                            </div>
-                                        ) : null}
-
                                         {/* Empty State */}
-                                        {((stats.pending_owners || 0) === 0 && (stats.pending_items || 0) === 0) && (
+                                        {((stats.pending_owners || 0) === 0) && (
                                             <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8', fontSize: '0.9rem' }}>
                                                 No new notifications
                                             </div>
@@ -387,7 +377,6 @@ const AdminDashboard = () => {
                     {/* CONTENT INJECTION BELOW */}
 
                     {/* Dashboard Stats */}
-                    {/* Dashboard Stats */}
                     {activeTab === 'dashboard' && (
                         <div className="stats-grid">
                             <StatCard
@@ -396,6 +385,7 @@ const AdminDashboard = () => {
                                 color="blue"
                                 icon="👥"
                                 onClick={() => setActiveTab('users')}
+                                index={1}
                             />
                             <StatCard
                                 label="Shop Owners"
@@ -403,6 +393,7 @@ const AdminDashboard = () => {
                                 color="purple"
                                 icon="🏪"
                                 onClick={() => setActiveTab('owners')}
+                                index={2}
                             />
                             <StatCard
                                 label="Verify Shops"
@@ -410,15 +401,9 @@ const AdminDashboard = () => {
                                 color="red"
                                 icon="🛡️"
                                 onClick={() => setActiveTab('pending_owners')}
+                                index={3}
                             />
-                            <StatCard
-                                label="Pending Items"
-                                value={stats.pending_items || 0}
-                                color="green"
-                                icon="📦"
-                                onClick={() => setActiveTab('pending')}
-                            />
-                            <StatCard label="Active Rentals" value={stats.rentals} color="orange" icon="🔄" />
+                            <StatCard label="Active Rentals" value={stats.rentals} color="orange" icon="🔄" index={4} />
                         </div>
                     )}
 
@@ -470,50 +455,115 @@ const AdminDashboard = () => {
                         </div>
                     )}
 
-                    {/* Categories Management */}
+                    {/* Categories Management - Redesigned Grid */}
                     {activeTab === 'categories' && (
                         <div className="categories-management-grid">
-                            <div className="table-container">
-                                <div className="table-header"><h3>Existing Categories</h3></div>
-                                <div className="table-scroll-wrapper" style={{ maxHeight: '600px', overflowY: 'auto' }}>
-                                    <table className="modern-table">
-                                        <colgroup>
-                                            <col style={{ width: '40%' }} />
-                                            <col style={{ width: '30%' }} />
-                                            <col style={{ width: '30%' }} />
-                                        </colgroup>
-                                        <thead>
-                                            <tr><th>Name</th><th>Type</th><th style={{ textAlign: 'right' }}>Action</th></tr>
-                                        </thead>
-                                        <tbody>
-                                            {filteredCategories.map(c => (
-                                                <tr key={c.id}>
-                                                    <td style={{ fontWeight: '600' }}>{c.name}</td>
-                                                    <td><span className={`status-badge ${c.type === 'category' ? 'status-active' : 'status-disabled'}`}>{c.type}</span></td>
-                                                    <td style={{ textAlign: 'right' }}><button className="btn-action btn-reject btn-small" onClick={() => handleAction('delete_category', c.id)}>Remove</button></td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+
+                            {/* Left Column: Fixed Add Form */}
+                            <div className="table-container add-new-category-card" style={{ position: 'sticky', top: '20px' }}>
+                                <div className="table-header" style={{ padding: '0 0 1.5rem 0', border: 'none' }}>
+                                    <h3>Add New Category</h3>
                                 </div>
-                            </div>
-                            <div className="table-container add-new-category-card">
-                                <div className="table-header" style={{ padding: '0 0 1.5rem 0', border: 'none' }}><h3>Add New</h3></div>
                                 <div className="form-group-column">
-                                    <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Category Name</label>
-                                    <input className="form-input" placeholder="e.g. Traditional Saree" value={newCat.name} onChange={e => setNewCat({ ...newCat, name: e.target.value })} style={{ margin: 0 }} />
+                                    <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Name</label>
+                                    <input
+                                        className="form-input"
+                                        placeholder="e.g. Traditional Saree"
+                                        value={newCat.name}
+                                        onChange={e => setNewCat({ ...newCat, name: e.target.value })}
+                                        style={{ margin: 0 }}
+                                    />
 
                                     <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b', marginTop: '0.5rem' }}>Type</label>
-                                    <select className="form-input" value={newCat.type} onChange={e => setNewCat({ ...newCat, type: e.target.value as any })} style={{ margin: 0 }}>
-                                        <option value="category">Category</option>
-                                        <option value="occasion">Occasion</option>
+                                    <select
+                                        className="form-input"
+                                        value={newCat.type}
+                                        onChange={e => setNewCat({ ...newCat, type: e.target.value as any })}
+                                        style={{ margin: 0 }}
+                                    >
+                                        <option value="category">Category (Item Type)</option>
+                                        <option value="occasion">Occasion (Event)</option>
                                     </select>
 
-                                    <button className="btn-action btn-primary btn-full-width" style={{ marginTop: '1rem', justifyContent: 'center' }} onClick={() => { handleAction('add_category', null, newCat); setNewCat({ name: '', type: 'category' }); }}>
-                                        + Add Item
+                                    <button
+                                        className="btn-action btn-primary btn-full-width"
+                                        style={{ marginTop: '1rem', justifyContent: 'center' }}
+                                        onClick={() => {
+                                            if (!newCat.name.trim()) return;
+                                            handleAction('add_category', null, newCat);
+                                            setNewCat({ name: '', type: 'category' });
+                                        }}
+                                    >
+                                        + Create Category
                                     </button>
                                 </div>
+
+                                <div style={{ marginTop: '2.5rem', borderTop: '1px solid #e2e8f0', paddingTop: '1.5rem' }}>
+                                    <h4 style={{ fontSize: '0.85rem', color: '#94a3b8', margin: '0 0 1rem 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Quick Presets</h4>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                        {['Kanchipuram Sarees', 'Kerala Kasavu', 'Temple Jewelry', 'Kathakali Props', 'Brass Lamps', 'Onam Specials'].map(preset => (
+                                            <button
+                                                key={preset}
+                                                onClick={() => setNewCat({ name: preset, type: 'category' })}
+                                                style={{
+                                                    padding: '4px 10px', fontSize: '0.75rem', background: '#f1f5f9',
+                                                    border: '1px solid #e2e8f0', borderRadius: '20px', cursor: 'pointer',
+                                                    color: '#475569', transition: 'all 0.2s'
+                                                }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.background = '#eef2ff'; e.currentTarget.style.color = '#6366f1'; e.currentTarget.style.borderColor = '#c7d2fe' }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#475569'; e.currentTarget.style.borderColor = '#e2e8f0' }}
+                                            >
+                                                {preset} +
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
+
+                            {/* Right Column: Animated Card Grid */}
+                            <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
+                                    <div>
+                                        <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1e293b' }}>Active Catalog ({filteredCategories.length})</h3>
+                                    </div>
+                                </div>
+
+                                {filteredCategories.length === 0 ? (
+                                    <div style={{ padding: '4rem 2rem', textAlign: 'center', background: 'white', borderRadius: '16px', border: '1px dashed #cbd5e1' }}>
+                                        <div style={{ fontSize: '3rem', margin: '0 0 1rem 0' }}>📭</div>
+                                        <h3 style={{ color: '#475569', margin: '0 0 0.5rem 0' }}>No Categories Found</h3>
+                                        <p style={{ color: '#94a3b8', margin: 0 }}>Create a new category using the form on the left.</p>
+                                    </div>
+                                ) : (
+                                    <div className="categories-card-grid">
+                                        {filteredCategories.map((c, index) => (
+                                            <div
+                                                key={c.id}
+                                                className="category-card"
+                                                style={{ animationDelay: `${index * 0.04}s` }} /* Staggered waterfall entrance */
+                                            >
+                                                <div>
+                                                    <h4 className="category-card-title">{c.name}</h4>
+                                                    <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0 }}>ID: #{c.id}</p>
+                                                </div>
+                                                <div className="category-card-footer">
+                                                    <span className={`status-badge ${c.type === 'category' ? 'status-active' : 'status-disabled'}`}>
+                                                        {c.type === 'category' ? '📦 Category' : '🎭 Occasion'}
+                                                    </span>
+                                                    <button
+                                                        className="category-card-delete"
+                                                        title="Delete Category"
+                                                        onClick={(e) => { e.stopPropagation(); handleAction('delete_category', c.id); }}
+                                                    >
+                                                        🗑️
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
                         </div>
                     )}
 
@@ -545,8 +595,6 @@ const AdminDashboard = () => {
                     {activeTab === 'users' && <UserTable data={filteredUsers} onDelete={(id: any) => handleAction('delete_user', id)} />}
                     {activeTab === 'items' && <AllItemsTable data={filteredItems} onDelete={(id: any) => handleAction('delete_item', id)} />}
                     {activeTab === 'owners' && <OwnerTable data={filteredOwners} onToggle={(id: any) => handleAction('toggle_shop_status', id)} />}
-                    {activeTab === 'pending' && <PendingItemTable data={filteredPendingItems} onApprove={(id: any) => handleAction('approve_item', id)} onReject={(id: any) => handleAction('reject_item', id)} />}
-
                 </div>
 
                 {/* Verification Modal */}
@@ -698,7 +746,7 @@ const AllItemsTable = ({ data, onDelete }: any) => (
                 <tr key={i.id}>
                     <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <img src={`http://localhost/HertiX/${i.image_url}`} style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} onError={(e) => e.currentTarget.src = 'https://via.placeholder.com/40'} />
+                            <img src={`http://localhost:3001/HertiX/${i.image_url}`} style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} onError={(e) => e.currentTarget.src = 'https://via.placeholder.com/40'} />
                             <span style={{ fontWeight: 600 }}>{i.name}</span>
                         </div>
                     </td>
@@ -773,51 +821,53 @@ const OwnerTable = ({ data, onToggle }: any) => {
     );
 };
 
-const PendingItemTable = ({ data, onApprove, onReject }: any) => (
-    <div className="table-container">
-        <table className="modern-table">
-            <thead><tr><th>Item</th><th>Owner</th><th>Actions</th></tr></thead>
-            <tbody>{data.map((i: any) => (
-                <tr key={i.id}>
-                    <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <img src={`http://localhost/HertiX/${i.image_url}`} style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', border: '1px solid rgba(255,255,255,0.2)' }} onError={(e) => e.currentTarget.src = 'https://via.placeholder.com/40'} />
-                            <div>
-                                <div style={{ fontWeight: 600, color: '#f8fafc' }}>{i.name}</div>
-                                <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{i.category}</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>{i.owner_name}</td>
-                    <td>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <button className="btn-action btn-approve" onClick={() => onApprove(i.id)}>Approve</button>
-                            <button className="btn-action btn-reject" onClick={() => onReject(i.id)}>Reject</button>
-                        </div>
-                    </td>
-                </tr>
-            ))}</tbody>
-        </table>
-    </div>
-);
 
-const StatCard = ({ label, value, color: _color, icon, onClick }: any) => {
+
+const StatCard = ({ label, value, color: _color, icon, onClick, index = 0 }: any) => {
+    // Generate some dynamic colors based on the label for a unique design
+    const getColors = () => {
+        switch (_color) {
+            case 'blue': return { bg: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', text: '#1e3a8a', iconBg: '#bfdbfe' };
+            case 'purple': return { bg: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)', text: '#581c87', iconBg: '#e9d5ff' };
+            case 'red': return { bg: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)', text: '#991b1b', iconBg: '#fecaca' };
+            case 'green': return { bg: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', text: '#166534', iconBg: '#bbf7d0' };
+            case 'orange': return { bg: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)', text: '#9a3412', iconBg: '#fed7aa' };
+            default: return { bg: '#ffffff', text: '#1e293b', iconBg: '#f1f5f9' };
+        }
+    };
+    const colors = getColors();
+
     return (
         <div
             className="stat-card"
             onClick={onClick}
-            style={{ cursor: onClick ? 'pointer' : 'default', transition: 'transform 0.2s, box-shadow 0.2s' }}
-            onMouseEnter={(e) => onClick && (e.currentTarget.style.transform = 'translateY(-5px)')}
-            onMouseLeave={(e) => onClick && (e.currentTarget.style.transform = 'translateY(0)')}
+            style={{
+                cursor: onClick ? 'pointer' : 'default',
+                background: colors.bg,
+                animationDelay: `${index * 0.1}s`,
+                border: '1px solid rgba(255,255,255,0.5)'
+            }}
         >
             <div className="stat-header">
-                <span className="stat-label">{label}</span>
-                <span className="stat-icon-wrap">{icon}</span>
+                <div>
+                    <span className="stat-label" style={{ color: colors.text, opacity: 0.8 }}>{label}</span>
+                    <div className="stat-value" style={{ color: colors.text }}>{value}</div>
+                </div>
+                <span className="stat-icon-wrap" style={{ background: colors.iconBg, color: colors.text, boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                    {icon}
+                </span>
             </div>
-            <span className="stat-value">{value}</span>
-            <div className="stat-trend">
-                <span>{onClick ? 'View Details →' : '↑ 12% vs last month'}</span>
+            <div className="stat-trend" style={{
+                background: onClick ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.4)',
+                color: colors.text,
+                backdropFilter: 'blur(4px)',
+                border: '1px solid rgba(255,255,255,0.8)',
+                transition: 'all 0.2s'
+            }}>
+                <span style={{ fontWeight: 600 }}>{onClick ? 'View Details →' : '↑ 12% vs last month'}</span>
             </div>
+            {/* Glossy overlay */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '40%', background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 100%)', pointerEvents: 'none', borderRadius: '16px 16px 0 0' }}></div>
         </div>
     );
 };

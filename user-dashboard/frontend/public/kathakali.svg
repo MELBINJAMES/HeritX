@@ -1,0 +1,184 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 530" width="400" height="530">
+  <defs>
+    <radialGradient id="faceGrad" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#22cc66"/>
+      <stop offset="60%" stop-color="#14a050"/>
+      <stop offset="100%" stop-color="#0a6030"/>
+    </radialGradient>
+    <radialGradient id="crownGrad" cx="50%" cy="20%" r="70%">
+      <stop offset="0%" stop-color="#f5d020"/>
+      <stop offset="50%" stop-color="#e0a020"/>
+      <stop offset="100%" stop-color="#b07000"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(0,0,0,0.5)"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="530" fill="#1a1514"/>
+
+  <!-- === CROWN STRUCTURE === -->
+  <!-- Gold crown base arch -->
+  <ellipse cx="200" cy="70" rx="160" ry="55" fill="url(#crownGrad)" filter="url(#shadow)"/>
+
+  <!-- Crown tiers (from bottom to top) -->
+  <rect x="60" y="22" width="280" height="18" rx="6" fill="#d4a017"/>
+  <rect x="80" y="8" width="240" height="18" rx="5" fill="#e8b820"/>
+  <rect x="110" y="-4" width="180" height="15" rx="4" fill="#f5d020"/>
+
+  <!-- Jewel on crown top -->
+  <ellipse cx="200" cy="-2" rx="30" ry="14" fill="#e63030"/>
+  <ellipse cx="200" cy="-2" rx="18" ry="8" fill="#ff6060"/>
+  <circle cx="200" cy="-2" r="6" fill="#fff" opacity="0.8"/>
+
+  <!-- Crown decorations: 5 vertical gold spires -->
+  <polygon points="120,22 112,2 128,2" fill="#f5d020"/>
+  <polygon points="160,14 152,-6 168,-6" fill="#f5d020"/>
+  <polygon points="200,8 192,-14 208,-14" fill="#f5d020"/>
+  <polygon points="240,14 232,-6 248,-6" fill="#f5d020"/>
+  <polygon points="280,22 272,2 288,2" fill="#f5d020"/>
+
+  <!-- Ornamental circles on crown -->
+  <circle cx="130" cy="50" r="9" fill="#e63030" stroke="#f5d020" stroke-width="2"/>
+  <circle cx="130" cy="50" r="5" fill="#ff8080"/>
+  <circle cx="200" cy="45" r="11" fill="#4488ff" stroke="#f5d020" stroke-width="2"/>
+  <circle cx="200" cy="45" r="6" fill="#88aaff"/>
+  <circle cx="270" cy="50" r="9" fill="#e63030" stroke="#f5d020" stroke-width="2"/>
+  <circle cx="270" cy="50" r="5" fill="#ff8080"/>
+
+  <!-- Gold chain drops from crown -->
+  <line x1="155" y1="80" x2="145" y2="115" stroke="#f5d020" stroke-width="3"/>
+  <circle cx="145" cy="119" r="6" fill="#e8b820"/>
+  <line x1="245" y1="80" x2="255" y2="115" stroke="#f5d020" stroke-width="3"/>
+  <circle cx="255" cy="119" r="6" fill="#e8b820"/>
+
+  <!-- === FACE === -->
+  <!-- Main face shape -->
+  <ellipse cx="200" cy="285" rx="145" ry="190" fill="url(#faceGrad)" filter="url(#shadow)"/>
+
+  <!-- White face paint highlight -->
+  <ellipse cx="200" cy="240" rx="110" ry="80" fill="white" opacity="0.15"/>
+
+  <!-- === ELABORATE EYE DECORATIONS === -->
+  <!-- Eye background / white area (LEFT) -->
+  <ellipse cx="150" cy="240" rx="42" ry="28" fill="white"/>
+  <!-- Eye black ring outline (LEFT) -->
+  <ellipse cx="150" cy="240" rx="42" ry="28" fill="none" stroke="#111" stroke-width="3"/>
+  <!-- Iris (LEFT) -->
+  <circle cx="150" cy="240" r="16" fill="#1a0a00"/>
+  <!-- Pupil (LEFT) - dark center -->
+  <circle cx="150" cy="240" r="9" fill="#050200"/>
+  <!-- Catchlight (LEFT) -->
+  <circle cx="155" cy="235" r="4" fill="#fff" opacity="0.85"/>
+
+  <!-- Eye background / white area (RIGHT) -->
+  <ellipse cx="250" cy="240" rx="42" ry="28" fill="white"/>
+  <!-- Eye black ring outline (RIGHT) -->
+  <ellipse cx="250" cy="240" rx="42" ry="28" fill="none" stroke="#111" stroke-width="3"/>
+  <!-- Iris (RIGHT) -->
+  <circle cx="250" cy="240" r="16" fill="#1a0a00"/>
+  <!-- Pupil (RIGHT) -->
+  <circle cx="250" cy="240" r="9" fill="#050200"/>
+  <!-- Catchlight (RIGHT) -->
+  <circle cx="255" cy="235" r="4" fill="#fff" opacity="0.85"/>
+
+  <!-- Thick black eyeliner / Kathakali eye extension LEFT -->
+  <path d="M 108,240 Q 130,220 150,240 Q 130,260 108,240 Z" fill="none" stroke="#111" stroke-width="4"/>
+  <!-- Extension line (left, outward) -->
+  <path d="M 108,240 Q 90,225 75,230" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 108,240 Q 90,255 75,250" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Thick black eyeliner / Kathakali eye extension RIGHT -->
+  <path d="M 292,240 Q 270,220 250,240 Q 270,260 292,240 Z" fill="none" stroke="#111" stroke-width="4"/>
+  <!-- Extension line (right, outward) -->
+  <path d="M 292,240 Q 310,225 325,230" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 292,240 Q 310,255 325,250" fill="none" stroke="#111" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Eyebrows (bold arched) -->
+  <path d="M 108,210 Q 150,188 192,210" fill="none" stroke="#111" stroke-width="8" stroke-linecap="round"/>
+  <path d="M 208,210 Q 250,188 292,210" fill="none" stroke="#111" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- === RED NOSE DOT === -->
+  <circle cx="200" cy="280" r="8" fill="#cc2200"/>
+  <circle cx="200" cy="280" r="4" fill="#ff5544"/>
+
+  <!-- === RED PATTERN ON CHEEKS (Chutti) === -->
+  <!-- Left cheek chutti - thick white border -->
+  <path d="M 65,250 Q 50,280 55,330 Q 80,360 110,350 Q 90,310 80,280 Z" fill="white" stroke="#ddd" stroke-width="1"/>
+  <!-- Inner red fill -->
+  <path d="M 75,260 Q 63,285 67,325 Q 87,345 105,337 Q 90,305 82,278 Z" fill="#cc2200"/>
+  <!-- Dots on chutti -->
+  <circle cx="78" cy="285" r="5" fill="white"/>
+  <circle cx="72" cy="305" r="5" fill="white"/>
+  <circle cx="75" cy="325" r="5" fill="white"/>
+
+  <!-- Right cheek chutti -->
+  <path d="M 335,250 Q 350,280 345,330 Q 320,360 290,350 Q 310,310 320,280 Z" fill="white" stroke="#ddd" stroke-width="1"/>
+  <path d="M 325,260 Q 337,285 333,325 Q 313,345 295,337 Q 310,305 318,278 Z" fill="#cc2200"/>
+  <circle cx="322" cy="285" r="5" fill="white"/>
+  <circle cx="328" cy="305" r="5" fill="white"/>
+  <circle cx="325" cy="325" r="5" fill="white"/>
+
+  <!-- === NOSE === -->
+  <path d="M 190,275 Q 200,295 210,275" fill="none" stroke="#0a6030" stroke-width="3" stroke-linecap="round"/>
+  <!-- Nose wings -->
+  <path d="M 185,282 Q 178,290 183,296" fill="none" stroke="#0a5028" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M 215,282 Q 222,290 217,296" fill="none" stroke="#0a5028" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- === LIPS === -->
+  <!-- Upper lip -->
+  <path d="M 170,330 Q 185,322 200,326 Q 215,322 230,330" fill="none" stroke="#cc2200" stroke-width="4" stroke-linecap="round"/>
+  <!-- Lower lip -->
+  <path d="M 170,330 Q 200,350 230,330" fill="#cc2200"/>
+  <path d="M 175,333 Q 200,346 225,333" fill="#ee4422"/>
+  <!-- Lip highlight -->
+  <path d="M 185,338 Q 200,344 215,338" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.4"/>
+
+  <!-- === FOREHEAD DECORATION === -->
+  <!-- Central red mark / bindi -->
+  <path d="M 185,140 Q 200,125 215,140 Q 205,155 200,158 Q 195,155 185,140 Z" fill="#cc2200"/>
+  <path d="M 190,142 Q 200,130 210,142 Q 204,153 200,156 Q 196,153 190,142 Z" fill="#ff4422"/>
+
+  <!-- Gold arched forehead band -->
+  <path d="M 80,180 Q 200,148 320,180" fill="none" stroke="#f5d020" stroke-width="5" opacity="0.7"/>
+  <!-- Small gold dots along the band -->
+  <circle cx="120" cy="170" r="5" fill="#f5d020"/>
+  <circle cx="160" cy="160" r="5" fill="#f5d020"/>
+  <circle cx="200" cy="158" r="6" fill="#f5d020"/>
+  <circle cx="240" cy="160" r="5" fill="#f5d020"/>
+  <circle cx="280" cy="170" r="5" fill="#f5d020"/>
+
+  <!-- === EAR ORNAMENTS === -->
+  <!-- Left ear -->
+  <ellipse cx="58" cy="280" rx="18" ry="30" fill="#14a050" stroke="#0a6030" stroke-width="2"/>
+  <circle cx="58" cy="270" r="10" fill="#f5d020" stroke="#b07000" stroke-width="2"/>
+  <circle cx="58" cy="270" r="5" fill="#e63030"/>
+  <circle cx="58" cy="295" r="7" fill="#f5d020" stroke="#b07000" stroke-width="1.5"/>
+
+  <!-- Right ear -->
+  <ellipse cx="342" cy="280" rx="18" ry="30" fill="#14a050" stroke="#0a6030" stroke-width="2"/>
+  <circle cx="342" cy="270" r="10" fill="#f5d020" stroke="#b07000" stroke-width="2"/>
+  <circle cx="342" cy="270" r="5" fill="#e63030"/>
+  <circle cx="342" cy="295" r="7" fill="#f5d020" stroke="#b07000" stroke-width="1.5"/>
+
+  <!-- === CHIN / BEARD DECORATION === -->
+  <!-- White chin beard area -->
+  <ellipse cx="200" cy="430" rx="80" ry="60" fill="white" opacity="0.9"/>
+  <path d="M 155,390 Q 200,460 245,390 Q 220,475 200,478 Q 180,475 155,390 Z" fill="white"/>
+  <!-- Gold trim at chin -->
+  <path d="M 145,392 Q 200,465 255,392" fill="none" stroke="#f5d020" stroke-width="3"/>
+
+  <!-- === NECK ORNAMENT === -->
+  <path d="M 130,460 Q 200,490 270,460" fill="none" stroke="#f5d020" stroke-width="4"/>
+  <circle cx="165" cy="472" r="6" fill="#e63030" stroke="#f5d020" stroke-width="1.5"/>
+  <circle cx="200" cy="478" r="8" fill="#4488ff" stroke="#f5d020" stroke-width="2"/>
+  <circle cx="235" cy="472" r="6" fill="#e63030" stroke="#f5d020" stroke-width="1.5"/>
+
+  <!-- Gold glow around whole face -->
+  <ellipse cx="200" cy="285" rx="152" ry="197" fill="none" stroke="#f5d020" stroke-width="2" opacity="0.3"/>
+</svg>

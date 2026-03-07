@@ -61,8 +61,11 @@ $date = date("d F Y, h:i A", strtotime($payment['transaction_date']));
 
     <div class="receipt-container">
         <div class="header">
-            <h1>HeritX Rentals</h1>
-            <p>Payment Receipt</p>
+            <div style="text-align: center; margin-bottom: 5px;">
+                <div style="font-size: 2.2rem; font-weight: bold; font-family: 'Helvetica Neue', Helvetica, Arial, serif; letter-spacing: 1px; line-height: 1.1; color: #1a1a1a;">HeritX</div>
+                <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 3px; color: #666; font-weight: 600; margin-top: 4px;">Wear the Legacy</div>
+            </div>
+            <p style="margin-top: 5px;">Payment Receipt</p>
         </div>
 
         <div class="info-grid">

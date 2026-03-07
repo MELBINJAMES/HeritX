@@ -1,6 +1,7 @@
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import PublicNavbar from './src/components/PublicNavbar';
 import Chatbot from './src/components/Chatbot';
+import LocationPrompt from './src/components/LocationPrompt';
 import Footer from './src/components/Footer';
 import PublicHome from './src/pages/PublicHome';
 import ItemDetails from './src/pages/ItemDetails';
@@ -19,6 +20,7 @@ import PaymentSuccess from './src/pages/PaymentSuccess';
 import BankGateway from './src/pages/BankGateway';
 import UPIGateway from './src/pages/UPIGateway';
 import CulturalGuidance from './src/pages/CulturalGuidance';
+import ShopProfile from './src/pages/ShopProfile';
 import Login from './src/pages/Login';
 import ForgotPassword from './src/pages/ForgotPassword';
 import { Terms, Privacy, Cancellation, Refund, HelpCenter, Contact } from './src/pages/LegalPages';
@@ -31,6 +33,7 @@ const PublicLayout = () => {
     return (
         <div className="public-app">
             <PublicNavbar />
+            <LocationPrompt />
             <Outlet />
             {location.pathname === '/' && <Footer />}
         </div>
@@ -56,6 +59,7 @@ function App() {
                     <Route path="/payment-success" element={<PaymentSuccess />} />
                     <Route path="/bank-gateway" element={<BankGateway />} />
                     <Route path="/upi-gateway" element={<UPIGateway />} />
+                    <Route path="/shop/:id" element={<ShopProfile />} />
 
                     {/* Legal & Support Routes */}
                     <Route path="/help" element={<HelpCenter />} />

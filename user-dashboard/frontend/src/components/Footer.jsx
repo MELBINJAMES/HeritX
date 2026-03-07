@@ -20,7 +20,10 @@ const Footer = () => {
                 <div className="footer-links-grid">
                     {/* Column 1: Brand & Social */}
                     <div className="footer-column brand-column">
-                        <h2 className="brand-name">HeritX</h2>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginBottom: '10px' }}>
+                            <span style={{ fontSize: '2rem', fontWeight: 800, fontFamily: 'Georgia, serif', letterSpacing: '1px', lineHeight: 1.1, color: '#f8fafc' }}>HeritX</span>
+                            <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '3px', color: '#94a3b8', fontWeight: 600, marginTop: '2px' }}>Wear the Legacy</span>
+                        </div>
                         <p className="brand-tagline">{t('brand_tagline')}</p>
                         <p className="brand-desc">{t('brand_desc')}</p>
                         <div className="footer-social">

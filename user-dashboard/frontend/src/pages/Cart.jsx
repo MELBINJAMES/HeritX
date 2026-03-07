@@ -3,7 +3,7 @@ import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Link } from 'react-router-dom';
 import { FaTrash, FaArrowRight, FaPlus, FaMinus, FaEye } from 'react-icons/fa';
-import toast from 'react-hot-toast';
+import toast from '../utils/toast';
 
 const Cart = () => {
     const { cart, addToCart, decrementQty, removeFromCart, clearCart, cartCount } = useCart();

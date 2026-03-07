@@ -1,5 +1,5 @@
 <?php
 // Razorpay API Credentials
-define('RAZORPAY_KEY_ID', 'rzp_test_S2VrB9WBQb7j5L');
-define('RAZORPAY_KEY_SECRET', '9W71jj1bq1Erc8y2hiuxhWMJ');
+define('RAZORPAY_KEY_ID', 'rzp_test_SKRfndOwhJc8en');
+define('RAZORPAY_KEY_SECRET', 'zE5u0yT0cqkFf2OhAqnKUJm4');
 ?>

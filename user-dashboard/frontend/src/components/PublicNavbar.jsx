@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FaUserCircle, FaBars, FaTimes, FaHeart, FaBell, FaShoppingCart } from 'react-icons/fa';
+import { FaUserCircle, FaBars, FaTimes, FaHeart, FaBell, FaShoppingCart, FaMapMarkerAlt } from 'react-icons/fa';
 import { MdTranslate } from 'react-icons/md';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useUserLocation } from '../context/LocationContext';
 import { useCart } from '../context/CartContext';
 import { fetchNotifications } from '../services/api';
-import toast from 'react-hot-toast';
+import toast from '../utils/toast';
 import '../styles/Navbar.css';
 
 const PublicNavbar = () => {
@@ -14,6 +15,7 @@ const PublicNavbar = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
     const { language, toggleLanguage, t } = useLanguage();
+    const { location: userLoc, openPrompt } = useUserLocation();
     const { cartCount } = useCart();
     const isBecomeOwnerPage = location.pathname === '/become-owner';
 
@@ -54,11 +56,32 @@ const PublicNavbar = () => {
         }}>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
                 {/* Logo */}
-                <Link to="/" style={{ textDecoration: 'none' }}>
-                    <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: '#1a1a1a', fontFamily: 'serif' }}>
-                        HeritX
-                    </div>
+                <Link to="/" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '1.6rem', fontWeight: 800, fontFamily: 'Georgia, serif', letterSpacing: '1px', lineHeight: 1.1, color: '#1e293b' }}>HeritX</span>
+                    <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '3px', color: '#64748b', fontWeight: 600 }}>Wear the Legacy</span>
                 </Link>
+
+                {/* Location Display */}
+                <div
+                    onClick={() => openPrompt()}
+                    style={{
+                        marginLeft: '30px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        cursor: 'pointer',
+                        padding: '6px 12px',
+                        background: '#f8f9fa',
+                        borderRadius: '20px',
+                        fontSize: '0.85rem',
+                        color: '#444',
+                        border: '1px solid #eee'
+                    }}
+                    title="Change Location"
+                >
+                    <FaMapMarkerAlt color="#1a1a1a" />
+                    <span>{userLoc ? (userLoc.city || userLoc.pincode) : 'Select Location'}</span>
+                </div>
 
                 {/* Desktop Menu */}
                 <div className="desktop-menu" style={{ display: 'flex', gap: '20px', alignItems: 'center', marginLeft: 'auto', marginRight: '30px' }}>
@@ -171,7 +194,6 @@ const PublicNavbar = () => {
                 </div>
 
                 {/* Language Toggle */}
-                {/* Language Toggle */}
                 <div
                     title={language === 'en' ? "Switch to Malayalam" : "Switch to English"}
                     style={{ marginRight: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
@@ -182,6 +204,7 @@ const PublicNavbar = () => {
                         {language.toUpperCase()}
                     </span>
                 </div>
+
 
                 {/* Auth Buttons */}
                 <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
@@ -257,6 +280,17 @@ const PublicNavbar = () => {
                                         >
                                             My Profile
                                         </Link>
+
+                                        {/* My Shop link for Shop Owners */}
+                                        {user.role === 'Shop Owner' && (
+                                            <Link
+                                                to={`/shop/${user.id}`}
+                                                style={{ display: 'block', padding: '10px 15px', textDecoration: 'none', color: '#333', borderBottom: '1px solid #f1f5f9' }}
+                                                onClick={() => setShowProfileMenu(false)}
+                                            >
+                                                My Shop
+                                            </Link>
+                                        )}
                                         <div
                                             onClick={() => { logout(); setShowProfileMenu(false); }}
                                             style={{ padding: '10px 15px', cursor: 'pointer', color: '#ef4444', fontWeight: '500' }}
@@ -289,7 +323,7 @@ const PublicNavbar = () => {
                                 }}>
                                     Login
                                 </Link>
-                                <a href="http://localhost:5174/register/finder" style={{
+                                <a href="http://localhost:3001/register/finder" style={{
                                     padding: '8px 20px',
                                     background: '#1a1a1a',
                                     borderRadius: '20px',

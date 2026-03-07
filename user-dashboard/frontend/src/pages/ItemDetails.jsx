@@ -7,8 +7,8 @@ import { fetchItems, fetchItemAvailability } from '../services/api';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import '../styles/CalendarOverride.css';
-import toast from 'react-hot-toast';
-import { FaShoppingCart, FaCalendarAlt, FaInfoCircle, FaShieldAlt, FaCheckCircle, FaTimesCircle, FaPlus, FaMinus, FaArrowLeft } from 'react-icons/fa';
+import toast from '../utils/toast';
+import { FaShoppingCart, FaCalendarAlt, FaInfoCircle, FaShieldAlt, FaCheckCircle, FaTimesCircle, FaPlus, FaMinus, FaArrowLeft, FaMapMarkerAlt, FaStore } from 'react-icons/fa';
 
 const ItemDetails = () => {
     const { id } = useParams();
@@ -17,7 +17,7 @@ const ItemDetails = () => {
     const { t } = useLanguage();
     const navigate = useNavigate();
     const [item, setItem] = useState(null);
-    const [bookedDates, setBookedDates] = useState([]);
+    const [availabilityData, setAvailabilityData] = useState({ total_quantity: 0, occupancy: {} });
     const [loading, setLoading] = useState(true);
     const [dateRange, setDateRange] = useState([null, null]);
     const [pickupTime, setPickupTime] = useState('10:00');
@@ -31,18 +31,10 @@ const ItemDetails = () => {
                 const foundItem = items.find(i => i.id == id);
                 if (foundItem) {
                     setItem(foundItem);
-                    // Mock availability + some random booked dates for realism
                     const availability = await fetchItemAvailability(id);
-
-                    // Add some dummy booked dates for visual effect
-                    const today = new Date();
-                    const dummyBookings = [
-                        { start_date: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2).toISOString(), end_date: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 4).toISOString() },
-                        { start_date: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 10).toISOString(), end_date: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 12).toISOString() },
-                        { start_date: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 18).toISOString(), end_date: new Date(today.getFullYear(), today.getMonth(), today.getDate() + 18).toISOString() }
-                    ];
-
-                    setBookedDates([...availability, ...dummyBookings]);
+                    if (availability && availability.status === 'success') {
+                        setAvailabilityData(availability);
+                    }
                 }
             } catch (err) {
                 console.error("Error loading item:", err);
@@ -56,20 +48,15 @@ const ItemDetails = () => {
     if (loading) return <div style={{ textAlign: 'center', padding: '100px', fontSize: '1.2rem' }}>Loading Item Details...</div>;
     if (!item) return <div style={{ textAlign: 'center', padding: '100px', fontSize: '1.2rem' }}>Item not found</div>;
 
-    const getAvailabilityForDate = (date) => {
-        if (!date) return null;
-        const day = date.getDay();
-        if (day === 0) return { open: "14:00", close: "20:00", label: "Afternoon Only" };
-        if (day === 6) return { open: "10:00", close: "16:00", label: "Morning/Early Afternoon" };
-        return { open: "09:00", close: "21:00", label: "Full Day" };
+    const getOccupancyForDate = (date) => {
+        if (!date) return 0;
+        const dateStr = date.toISOString().split('T')[0];
+        return availabilityData.occupancy[dateStr] || 0;
     };
 
-    const isDateBooked = ({ date }) => {
-        return bookedDates.some(booking => {
-            const start = new Date(booking.start_date);
-            const end = new Date(booking.end_date);
-            return date >= start && date <= end;
-        });
+    const isDateFullyBooked = ({ date }) => {
+        const occupancy = getOccupancyForDate(date);
+        return occupancy >= availabilityData.total_quantity;
     };
 
     const handleAddToCart = () => {
@@ -157,26 +144,62 @@ const ItemDetails = () => {
                                         const now = new Date();
                                         now.setHours(0, 0, 0, 0);
                                         if (date < now) return true;
-                                        // Disable booked dates
-                                        return isDateBooked({ date });
+                                        // Disable fully booked dates
+                                        return isDateFullyBooked({ date });
                                     }}
                                     tileContent={({ date, view }) => {
                                         if (view !== 'month') return null;
-                                        if (isDateBooked({ date })) {
-                                            return <div className="dot-indicator booked"></div>;
+                                        const now = new Date();
+                                        now.setHours(0, 0, 0, 0);
+                                        if (date < now) return null;
+
+                                        const dateStr = date.toLocaleDateString('en-CA');
+                                        const occupancy = availabilityData.occupancy[dateStr] || 0;
+                                        const recovery = availabilityData.recovery ? (availabilityData.recovery[dateStr] || 0) : 0;
+                                        const left = availabilityData.total_quantity - occupancy;
+
+                                        // 1. If stock is recovering (items returned + buffer ended today)
+                                        if (recovery > 0) {
+                                            return (
+                                                <div className="availability-badge recovery" title={`${recovery} item(s) returned to stock today`}>
+                                                    +{recovery}
+                                                </div>
+                                            );
                                         }
+
+                                        // 2. If fully booked
+                                        if (left <= 0) {
+                                            return <div className="dot-indicator booked" title="Fully Booked"></div>;
+                                        }
+
+                                        // 3. If low stock, show 'X Left'
+                                        if (left <= 2 && left < availabilityData.total_quantity) {
+                                            return (
+                                                <div className="availability-badge low-stock">
+                                                    {left} Left
+                                                </div>
+                                            );
+                                        }
+
+                                        // 4. Otherwise (high stock), show nothing to keep it clean (removed "Available" badge)
                                         return null;
                                     }}
                                     className="react-calendar readonly"
                                     minDate={new Date()}
                                 />
 
-                                <div style={{ display: 'flex', gap: '15px', fontSize: '0.75rem', marginTop: '15px', justifyContent: 'center' }}>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                        <span style={{ width: '10px', height: '10px', background: '#ef4444', borderRadius: '2px' }}></span> Booked
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', fontSize: '0.65rem', marginTop: '20px', justifyContent: 'center', padding: '8px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #f1f5f9' }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#64748b' }}>
+                                        <span style={{ width: '6px', height: '6px', background: '#ef4444', borderRadius: '50%' }}></span> Booked
                                     </span>
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                                        <span style={{ width: '10px', height: '10px', background: '#f8f9fa', borderRadius: '2px', border: '1px solid #eee' }}></span> Available
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#64748b' }}>
+                                        <span style={{ padding: '0 4px', background: '#f0fdf4', color: '#22c55e', border: '1px solid #dcfce7', borderRadius: '3px', fontWeight: 'bold' }}>+1</span> Stock Recovery
+                                    </span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#64748b' }}>
+                                        <span style={{ padding: '0 4px', background: '#fffbeb', color: '#f59e0b', border: '1px solid #fef3c7', borderRadius: '3px', fontWeight: 'bold' }}>1 Left</span> Low Stock
+                                    </span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#64748b' }}>
+                                        <span style={{ width: '8px', height: '8px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '2px' }}></span> High Stock
                                     </span>
                                 </div>
                             </div>
@@ -213,6 +236,53 @@ const ItemDetails = () => {
                             <FaInfoCircle color="#666" /> Description
                         </h3>
                         <p style={{ color: '#444', lineHeight: '1.6', fontSize: '1rem' }}>{item.description}</p>
+                    </section>
+
+                    <section style={{ borderTop: '1px solid #eee', paddingTop: '30px' }}>
+                        <div style={{
+                            background: 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)',
+                            padding: '24px',
+                            borderRadius: '20px',
+                            border: '1px solid #e2e8f0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <div style={{
+                                    width: '48px', height: '48px', background: '#1a1a1a',
+                                    borderRadius: '12px', display: 'flex', alignItems: 'center',
+                                    justifyContent: 'center', color: 'white'
+                                }}>
+                                    <FaStore size={24} />
+                                </div>
+                                <div>
+                                    <p style={{ margin: '0 0 4px 0', fontSize: '1.1rem', fontWeight: 'bold', color: '#1a1a1a' }}>{item.shop_name}</p>
+                                    <p style={{ margin: 0, color: '#64748b', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <FaMapMarkerAlt size={12} color="#94a3b8" /> {item.shop_city} {item.shop_pincode ? `• ${item.shop_pincode}` : ''}
+                                    </p>
+                                </div>
+                            </div>
+                            <Link
+                                to={`/shop/${item.owner_id}`}
+                                style={{
+                                    padding: '10px 24px',
+                                    background: '#1a1a1a',
+                                    borderRadius: '30px',
+                                    textDecoration: 'none',
+                                    color: 'white',
+                                    fontWeight: '600',
+                                    fontSize: '0.85rem',
+                                    transition: 'all 0.3s ease',
+                                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                }}
+                                onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'; }}
+                                onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; }}
+                            >
+                                Shop Profile
+                            </Link>
+                        </div>
                     </section>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>

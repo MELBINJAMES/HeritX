@@ -25,7 +25,10 @@ if ($jsonData) {
     $rawPassword = isset($_POST['password']) ? $_POST['password'] : '';
     $shopAddress = isset($_POST['shop_address']) ? $conn->real_escape_string($_POST['shop_address']) : '';
     $shopCity = isset($_POST['shop_city']) ? $conn->real_escape_string($_POST['shop_city']) : '';
+    $shopPincode = isset($_POST['shop_pincode']) ? $conn->real_escape_string($_POST['shop_pincode']) : '';
     $shopPhone = isset($_POST['shop_phone']) ? $conn->real_escape_string($_POST['shop_phone']) : '';
+    $shopLat = isset($_POST['shop_lat']) && is_numeric($_POST['shop_lat']) ? floatval($_POST['shop_lat']) : null;
+    $shopLng = isset($_POST['shop_lng']) && is_numeric($_POST['shop_lng']) ? floatval($_POST['shop_lng']) : null;
 
     // File Upload Handler
     if (isset($_FILES['proof_doc']) && $_FILES['proof_doc']['error'] == 0) {
@@ -78,7 +81,9 @@ if ($result->num_rows > 0) {
     // Insert into respective table
     // Updated INSERT to include new shop columns and approval status
     $is_approved = ($role === 'Shop Owner') ? 0 : 1;
-    $sql = "INSERT INTO $table (email, name, password, role, shop_address, shop_city, shop_phone, shop_proof, is_approved) VALUES ('$email', '$fullName', '$password', '$role', '$shopAddress', '$shopCity', '$shopPhone', '$proofPath', '$is_approved')";
+    $latVal  = $shopLat  !== null ? "'$shopLat'"  : 'NULL';
+    $lngVal  = $shopLng  !== null ? "'$shopLng'"  : 'NULL';
+    $sql = "INSERT INTO $table (email, name, password, role, shop_address, shop_city, shop_pincode, shop_phone, shop_proof, latitude, longitude, is_approved) VALUES ('$email', '$fullName', '$password', '$role', '$shopAddress', '$shopCity', '$shopPincode', '$shopPhone', '$proofPath', $latVal, $lngVal, '$is_approved')";
     
     if ($conn->query($sql) === TRUE) {
         $msg = "Account created successfully!";

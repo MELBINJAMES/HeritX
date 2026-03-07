@@ -15,13 +15,22 @@ if ($user_id <= 0) {
     $sql = "
         SELECT 
             r.id as order_id,
+            r.user_id,
             r.status,
             r.start_date as booking_date,
             r.created_at,
+            r.total_price,
+            r.payment_method,
+            COALESCE(r.razorpay_payment_id, '') as razorpay_payment_id,
+            COALESCE(r.razorpay_order_id, '') as razorpay_order_id,
             i.name as item_name,
-            i.image_url,
+            i.image_url as item_image,
+            i.deposit_amount,
             u.name as renter_name,
-            u.email as renter_email
+            u.email as renter_email,
+            r.contact_phone as renter_phone,
+            COALESCE(r.damage_note, '') as damage_note,
+            COALESCE(r.damage_deduction, 0) as damage_deduction
         FROM rentals r
         JOIN items i ON r.item_id = i.id
         JOIN users u ON r.user_id = u.id

@@ -9,6 +9,7 @@ if ($id > 0) {
     // Join shopowners (Auth) with owner_profile (Details)
     $sql = "SELECT 
                 s.id, s.name, s.email,
+                s.offer_title, s.offer_message, s.offer_start, s.offer_end, s.offer_discount_percent,
                 p.shop_name, p.shop_description, p.profile_photo,
                 p.phone, p.shop_address, p.shop_city, p.shop_pincode, p.maps_url,
                 p.instagram_url, p.facebook_url, p.opening_time, p.closing_time, p.working_days,

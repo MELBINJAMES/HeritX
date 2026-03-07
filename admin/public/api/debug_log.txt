@@ -862,3 +862,34 @@ Do not mix costume parts carelessly
 
 [2026-02-04 07:24:43] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../user-dashboard/frontend/public/uploads/item_1770186283_brass lamb.webp
 [2026-02-04 07:24:43] Item inserted via Mysqli
+[2026-02-23 05:49:17] Request Received
+[2026-02-23 05:49:17] Array
+(
+    [owner_id] => 16
+    [name] => flute
+    [category] => Musical Instruments
+    [occasion] => Cultural Program
+    [item_condition] => Good
+    [quantity] => 1
+    [price] => 1000
+    [deposit] => 5000
+    [description] => qwertyuioplkjhgfdsazxcvbn
+    [dos] => 
+    [donts] => 
+)
+
+[2026-02-23 05:49:17] Array
+(
+    [image] => Array
+        (
+            [name] => flute.jpg
+            [type] => image/jpeg
+            [tmp_name] => C:\xampp\tmp\phpFA63.tmp
+            [error] => 0
+            [size] => 171800
+        )
+
+)
+
+[2026-02-23 05:49:17] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../uploads/item_1771822157_flute.jpg
+[2026-02-23 05:49:17] Item inserted via Mysqli

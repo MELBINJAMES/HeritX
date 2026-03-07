@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import toast from 'react-hot-toast';
+import toast from '../utils/toast';
 import { useLanguage } from './LanguageContext';
 import { useAuth } from './AuthContext';
 

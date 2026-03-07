@@ -14,7 +14,8 @@ try {
         "ALTER TABLE rentals ADD COLUMN IF NOT EXISTS pincode VARCHAR(20)",
         "ALTER TABLE rentals ADD COLUMN IF NOT EXISTS contact_number VARCHAR(20)",
         "ALTER TABLE rentals ADD COLUMN IF NOT EXISTS razorpay_order_id VARCHAR(100)",
-        "ALTER TABLE rentals ADD COLUMN IF NOT EXISTS razorpay_payment_id VARCHAR(100)"
+        "ALTER TABLE rentals ADD COLUMN IF NOT EXISTS razorpay_payment_id VARCHAR(100)",
+        "ALTER TABLE rentals ADD COLUMN IF NOT EXISTS quantity INT DEFAULT 1"
     ];
 
     foreach ($queries as $sql) {

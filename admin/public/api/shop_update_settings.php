@@ -74,12 +74,18 @@ $opening_time = $conn->real_escape_string($data['opening_time'] ?? '');
 $closing_time = $conn->real_escape_string($data['closing_time'] ?? '');
 $working_days = $conn->real_escape_string($data['working_days'] ?? '');
 
-// 1. Update User Auth Info (Name sync)
-// Note: `name` is often a reserved keyword, using backticks is safer
-$sqlUser = "UPDATE users SET `name` = ? WHERE id = ?";
+// Handle Offers
+$offer_title = $conn->real_escape_string($data['offer_title'] ?? '');
+$offer_message = $conn->real_escape_string($data['offer_message'] ?? '');
+$offer_start = !empty($data['offer_start']) ? "'" . $conn->real_escape_string($data['offer_start']) . "'" : "NULL";
+$offer_end = !empty($data['offer_end']) ? "'" . $conn->real_escape_string($data['offer_end']) . "'" : "NULL";
+$offer_discount_percent = isset($data['offer_discount_percent']) ? intval($data['offer_discount_percent']) : 0;
+
+// 1. Update User Auth Info & Offers (Name sync and promotions)
+$sqlUser = "UPDATE users SET `name` = ?, offer_title = ?, offer_message = ?, offer_start = $offer_start, offer_end = $offer_end, offer_discount_percent = ? WHERE id = ?";
 $stmtUser = $conn->prepare($sqlUser);
 if ($stmtUser) {
-    $stmtUser->bind_param("si", $shop_name, $id);
+    $stmtUser->bind_param("sssii", $shop_name, $offer_title, $offer_message, $offer_discount_percent, $id);
     $stmtUser->execute();
     $stmtUser->close();
 } else {

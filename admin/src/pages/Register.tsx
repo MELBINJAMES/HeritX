@@ -22,6 +22,7 @@ const Register = ({ defaultRole = 'Shop Owner', lockRole = false }: RegisterProp
   // New Shop Fields
   const [shopAddress, setShopAddress] = useState('')
   const [shopCity, setShopCity] = useState('')
+  const [shopPincode, setShopPincode] = useState('')
   const [shopPhone, setShopPhone] = useState('')
   const [proofFile, setProofFile] = useState<File | null>(null)
 
@@ -72,12 +73,30 @@ const Register = ({ defaultRole = 'Shop Owner', lockRole = false }: RegisterProp
       if (role === 'Shop Owner') {
         formData.append('shop_address', shopAddress)
         formData.append('shop_city', shopCity)
+        formData.append('shop_pincode', shopPincode)
         formData.append('shop_phone', shopPhone)
         if (proofFile) {
           formData.append('proof_doc', proofFile)
         } else {
           setError("Please upload a verification document (Shop Front or License).")
           return;
+        }
+
+        // Geocode the city once at registration time (never need to call again)
+        if (shopCity.trim()) {
+          try {
+            const geoRes = await fetch(
+              `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(shopCity.trim())}&format=json&limit=1`,
+              { headers: { 'Accept-Language': 'en' } }
+            );
+            const geoData = await geoRes.json();
+            if (geoData && geoData.length > 0) {
+              formData.append('shop_lat', geoData[0].lat);
+              formData.append('shop_lng', geoData[0].lon);
+            }
+          } catch (geoErr) {
+            console.warn('Geocoding failed, skipping coordinates:', geoErr);
+          }
         }
       }
 
@@ -199,12 +218,12 @@ const Register = ({ defaultRole = 'Shop Owner', lockRole = false }: RegisterProp
 
       <div className="auth-card">
         <div className="auth-card-header">
-          <a href="http://localhost:3000" className="back-arrow" aria-label="Back to home">
+          <a href="http://localhost:3001" className="back-arrow" aria-label="Back to home">
             ←
           </a>
-          <div className="brand compact">
-            <span className="logo-mark" aria-hidden="true" />
-            <span className="logo-text">HeritX</span>
+          <div className="brand compact" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <span style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'Georgia, serif', letterSpacing: '1px', lineHeight: 1.1, color: '#1e293b' }}>HeritX</span>
+            <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '3px', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>Wear the Legacy</span>
           </div>
         </div>
         <h1 className="auth-title">Create your account</h1>
@@ -236,6 +255,7 @@ const Register = ({ defaultRole = 'Shop Owner', lockRole = false }: RegisterProp
           <label className="field">
             <span>{lockRole && role === 'Shop Owner' ? 'Shop email' : 'Email'}</span>
             <input
+              id="email-input"
               required
               type="email"
               value={email}
@@ -247,6 +267,7 @@ const Register = ({ defaultRole = 'Shop Owner', lockRole = false }: RegisterProp
             <span>Password</span>
             <div style={{ position: 'relative' }}>
               <input
+                id="password-input"
                 required
                 type={showPassword ? 'text' : 'password'}
                 value={password}
@@ -320,6 +341,10 @@ const Register = ({ defaultRole = 'Shop Owner', lockRole = false }: RegisterProp
                   <input required value={shopCity} onChange={(e) => setShopCity(e.target.value)} placeholder="e.g. Cochin" />
                 </label>
                 <label className="field" style={{ flex: 1 }}>
+                  <span>Pincode</span>
+                  <input required value={shopPincode} onChange={(e) => setShopPincode(e.target.value)} placeholder="682001" />
+                </label>
+                <label className="field" style={{ flex: 1 }}>
                   <span>Contact Phone</span>
                   <input required value={shopPhone} onChange={(e) => setShopPhone(e.target.value)} placeholder="+91 98765..." />
                 </label>
@@ -365,13 +390,13 @@ const Register = ({ defaultRole = 'Shop Owner', lockRole = false }: RegisterProp
             </label>
           )}
 
-          <button className="cta-button primary full" type="submit">
+          <button id="submit-btn" className="cta-button primary full" type="submit">
             Create account
           </button>
         </form>
 
         <div className="auth-links">
-          <Link to={role === 'Shop Owner' ? '/shop-owner/login' : '/finder/login'}>
+          <Link id="login-btn" to={role === 'Shop Owner' ? '/shop-owner/login' : '/finder/login'}>
             Already registered? Sign in
           </Link>
         </div>

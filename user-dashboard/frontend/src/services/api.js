@@ -1,11 +1,15 @@
 const API_BASE_URL = 'http://localhost/HertiX/user-dashboard/backend/api';
 const PAYMENTS_API_URL = 'http://localhost/HertiX/user-dashboard/payments/backend/payments.php';
 
-export const fetchItems = async (occasion = '') => {
+export const fetchItems = async (params = {}) => {
     try {
-        const url = occasion
-            ? `${API_BASE_URL}/items.php?occasion=${occasion}`
-            : `${API_BASE_URL}/items.php`;
+        const queryParams = new URLSearchParams();
+        if (params.occasion) queryParams.append('occasion', params.occasion);
+        if (params.city) queryParams.append('city', params.city);
+        if (params.pincode) queryParams.append('pincode', params.pincode);
+        if (params.id) queryParams.append('id', params.id);
+
+        const url = `${API_BASE_URL}/items.php${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
         const response = await fetch(url);
         const data = await response.json();
 

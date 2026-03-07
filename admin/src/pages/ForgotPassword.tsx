@@ -1,5 +1,4 @@
 import { type FormEvent, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
 
 type Step = 'email' | 'otp' | 'reset'
 
@@ -13,11 +12,10 @@ const ForgotPassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const navigate = useNavigate()
 
   // Helper to call PHP API
   // Using relative path assuming Vite proxies to localhost/HertiX/admin/public/api or direct URL
-  const API_BASE = 'http://localhost/HertiX/admin/public/api'
+  const API_BASE = 'http://localhost/HertiX/admin/public/api';
 
   // Step 1: Send OTP
   const onSendOtp = async (e: FormEvent) => {
@@ -104,7 +102,7 @@ const ForgotPassword = () => {
       const data = await res.json()
 
       if (data.status === 'success') {
-        navigate('/finder/login')
+        window.location.href = 'http://localhost:3002/dashboard';
       } else {
         setError(data.message)
       }
@@ -175,12 +173,12 @@ const ForgotPassword = () => {
       )}
       <div className="auth-card">
         <div className="auth-card-header">
-          <Link to="/" className="back-arrow" aria-label="Back to home">
+          <a href="http://localhost:3001" className="back-arrow" aria-label="Back to home">
             ←
-          </Link>
-          <div className="brand compact">
-            <span className="logo-mark" aria-hidden="true" />
-            <span className="logo-text">HeritX</span>
+          </a>
+          <div className="brand compact" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <span style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'Georgia, serif', letterSpacing: '1px', lineHeight: 1.1, color: '#1e293b' }}>HeritX</span>
+            <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '3px', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>Wear the Legacy</span>
           </div>
         </div>
 
@@ -305,7 +303,7 @@ const ForgotPassword = () => {
         )}
 
         <div className="auth-links">
-          <Link to="/finder/login">Return to login</Link>
+          <a href="http://localhost:3001/login">Return to login</a>
         </div>
       </div>
     </div>

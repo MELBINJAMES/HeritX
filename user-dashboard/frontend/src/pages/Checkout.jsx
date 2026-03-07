@@ -3,85 +3,147 @@ import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaCreditCard, FaLock, FaCheckCircle, FaMobileAlt, FaUniversity, FaMoneyBillWave } from 'react-icons/fa';
-import toast from 'react-hot-toast';
+import { FaArrowLeft, FaCreditCard, FaLock, FaCheckCircle, FaMobileAlt, FaUniversity, FaMoneyBillWave, FaCalendarAlt } from 'react-icons/fa';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+import '../styles/CalendarOverride.css';
+import toast from '../utils/toast';
 
 const Checkout = () => {
     const { cart, clearCart } = useCart();
     const { t } = useLanguage();
     const navigate = useNavigate();
     const [isProcessing, setIsProcessing] = useState(false);
+    const [cartAvailability, setCartAvailability] = useState({}); // itemId => {total_quantity, occupancy}
 
     // Form and Selection State
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [paymentMethod, setPaymentMethod] = useState('card');
-    const [deliveryMethod, setDeliveryMethod] = useState('pickup');
 
-    // Payment Input State
-    const [cardDetails, setCardDetails] = useState({ number: '', expiry: '', cvv: '', name: '' });
-    const [upiId, setUpiId] = useState('');
-    const [upiHandle, setUpiHandle] = useState('@oksbi');
-    const [bank, setBank] = useState('');
+    const loadAvailability = async () => {
+        const availability = {};
+        for (const item of cart) {
+            try {
+                const API_URL = 'http://localhost/HertiX/user-dashboard/backend/api/items.php';
+                const res = await fetch(`${API_URL}?action=availability&id=${item.id}`);
+                const data = await res.json();
+                if (data.status === 'success') {
+                    availability[item.id] = data;
+                }
+            } catch (err) {
+                console.error("Failed to fetch availability for item", item.id, err);
+            }
+        }
+        setCartAvailability(availability);
+    };
+
+    React.useEffect(() => {
+        if (cart.length > 0) loadAvailability();
+    }, [cart]);
+
+    const isRangeAvailable = () => {
+        if (!startDate || !endDate) return { available: true };
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        // Items are occupied from start_date to end_date + 1 (buffer)
+        const checkEnd = new Date(end);
+        checkEnd.setDate(checkEnd.getDate() + 1);
+
+        for (const item of cart) {
+            const avail = cartAvailability[item.id];
+            if (!avail) continue;
+
+            // CRITICAL: Check if the user requested more than the total absolute stock
+            if (item.qty > avail.total_quantity) {
+                return {
+                    available: false,
+                    itemName: item.name,
+                    date: 'ALL dates',
+                    reason: `Requested ${item.qty} units but only ${avail.total_quantity} exist in total physical stock.`
+                };
+            }
+
+            const tempDate = new Date(start);
+            while (tempDate <= checkEnd) {
+                const dateStr = tempDate.toLocaleDateString('en-CA');
+                const occupancy = avail.occupancy[dateStr] || 0;
+                // If the user wants to book 'item.qty' units, check if we have enough
+                if (occupancy + item.qty > avail.total_quantity) {
+                    return { available: false, itemName: item.name, date: dateStr };
+                }
+                tempDate.setDate(tempDate.getDate() + 1);
+            }
+        }
+        return { available: true };
+    };
+
+    const handleCalendarChange = (value) => {
+        if (Array.isArray(value)) {
+            const [start, end] = value;
+            if (start) setStartDate(start.toISOString().split('T')[0]);
+            if (end) setEndDate(end.toISOString().split('T')[0]);
+            else setEndDate('');
+        }
+    };
+
+    const isDateFullyBooked = (date) => {
+        const dateStr = date.toLocaleDateString('en-CA'); // YYYY-MM-DD local
+        for (const item of cart) {
+            const avail = cartAvailability[item.id];
+            if (!avail) continue;
+            const occupancy = avail.occupancy[dateStr] || 0;
+            // If the user wants to book 'item.qty' units, check if we have enough
+            if (occupancy + item.qty > avail.total_quantity) return true;
+        }
+        return false;
+    };
+
+    const getCombinedStockInfo = (date) => {
+        const dateStr = date.toLocaleDateString('en-CA');
+        let minLeft = Infinity;
+        let totalRecovery = 0;
+        let totalQuantity = 0;
+        let anyItemUnloaded = false;
+
+        for (const item of cart) {
+            const avail = cartAvailability[item.id];
+            if (!avail) {
+                anyItemUnloaded = true;
+                continue;
+            }
+            const occupancy = avail.occupancy[dateStr] || 0;
+            const recovery = avail.recovery ? (avail.recovery[dateStr] || 0) : 0;
+            const left = avail.total_quantity - occupancy;
+
+            if (left < minLeft) minLeft = left;
+            totalRecovery += recovery;
+            totalQuantity += avail.total_quantity;
+        }
+
+        if (anyItemUnloaded && minLeft === Infinity) return null;
+        return { minLeft, totalRecovery, totalQuantity };
+    };
+
+    const availabilityResult = isRangeAvailable();
+    const calculateDuration = () => {
+        if (!startDate || !endDate) return 0;
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffTime = Math.abs(end - start);
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both days
+    };
+
+    const duration = calculateDuration();
+
+    const [paymentMethod, setPaymentMethod] = useState('online'); // Default to new online option
+    const [deliveryMethod, setDeliveryMethod] = useState('pickup');
 
     // Delivery & Contact State
     const [phone, setPhone] = useState('');
     const [deliveryAddress, setDeliveryAddress] = useState('');
     const [city, setCity] = useState('');
     const [pincode, setPincode] = useState('');
-
-    // Verification State
-    const [isVerifying, setIsVerifying] = useState(false);
-    const [isUpiVerified, setIsUpiVerified] = useState(false);
-    const [verifiedName, setVerifiedName] = useState('');
-
-    const handleUpiChange = (val) => {
-        setUpiId(val);
-        setIsUpiVerified(false);
-    };
-
-    const verifyUpi = () => {
-        if (!upiId) {
-            toast.error("Please enter a UPI ID");
-            return;
-        }
-
-        // Basic format validation (alphanumeric, dot, underscore, hyphen)
-        const isValidFormat = /^[a-zA-Z0-9._-]+$/.test(upiId);
-        if (!isValidFormat || upiId.length < 3) {
-            toast.error("Invalid UPI ID format");
-            return;
-        }
-
-        setIsVerifying(true);
-        setVerifiedName(''); // Reset name on new verify attempt
-        setIsUpiVerified(false);
-
-        setTimeout(() => {
-            setIsVerifying(false);
-
-            // Mock validation: Fail for specific keywords to allow testing failure
-            if (['fail', 'error', 'invalid'].includes(upiId.toLowerCase())) {
-                toast.error("UPI ID could not be verified");
-                setIsUpiVerified(false);
-            } else {
-                setIsUpiVerified(true);
-                setVerifiedName("MELBIN JAMES"); // Demo Name
-                toast.success("Verified: MELBIN JAMES");
-            }
-        }, 1500);
-    };
-
-    const calculateDuration = () => {
-        if (!startDate || !endDate) return 0;
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const diffTime = end - start;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // Inclusive
-        return diffDays > 0 ? diffDays : 0;
-    };
-
-    const duration = calculateDuration();
 
     const calculateTotal = () => {
         if (duration === 0) return 0;
@@ -90,7 +152,23 @@ const Checkout = () => {
         }, 0);
     };
 
+    const calculateDiscount = () => {
+        if (duration === 0) return 0;
+        const now = new Date();
+        return cart.reduce((totalDiscount, item) => {
+            const hasActiveOffer = item.offer_start && item.offer_end &&
+                new Date(item.offer_start) <= now && new Date(item.offer_end) >= now;
+
+            if (hasActiveOffer && item.offer_discount_percent > 0) {
+                const itemTotal = item.price_per_day * item.qty * duration;
+                return totalDiscount + (itemTotal * (item.offer_discount_percent / 100));
+            }
+            return totalDiscount;
+        }, 0);
+    };
+
     const totalRent = calculateTotal();
+    const totalDiscount = calculateDiscount();
     const depositAmount = cart.reduce((total, item) => total + (item.deposit_amount || 0) * item.qty, 0); // Mock deposit if not in cart item, assuming 0 or add mock property
     // Actually items table has deposit_amount. Let's assume it's passed in cart item.
     // If cart item doesn't have it, we default to 0. 
@@ -158,18 +236,9 @@ const Checkout = () => {
         }
     };
 
-    const totalPayable = totalRent + depositAmount + deliveryCharge;
+    const totalPayable = totalRent - totalDiscount + depositAmount + deliveryCharge;
 
     const validatePaymentForm = () => {
-        if (paymentMethod === 'card') {
-            if (!cardDetails.number || !cardDetails.expiry || !cardDetails.cvv || !cardDetails.name) return false;
-            // Simple validation
-            if (cardDetails.number.length < 16) return false;
-            if (cardDetails.cvv.length < 3) return false;
-        }
-        if (paymentMethod === 'upi' && (!upiId || !isUpiVerified)) return false;
-        if (paymentMethod === 'netbanking' && !bank) return false;
-
         // Contact & Delivery Validation
         if (!phone || phone.length < 10) {
             toast.error("Please enter a valid 10-digit phone number.");
@@ -184,7 +253,6 @@ const Checkout = () => {
         }
 
         if (deliveryMethod === 'delivery') {
-            // ... (rest of delivery validation) ...
             if (!deliveryAddress || !city || !pincode || pincode.length < 6) {
                 toast.error("Please fill in complete delivery address.");
                 return false;
@@ -210,6 +278,11 @@ const Checkout = () => {
             return;
         }
 
+        if (!availabilityResult.available) {
+            toast.error(`Unavailable: ${availabilityResult.itemName} is booked on ${availabilityResult.date}.`);
+            return;
+        }
+
         if (!validatePaymentForm()) {
             return;
         }
@@ -225,29 +298,13 @@ const Checkout = () => {
 
             const payload = {
                 user_id: user.id,
-                cart: cart, // Note: Backend needs to handle array if multiple items, currently verify_payment handles single? Let's check. 
-                // payment_verify.php handles single item insert loop or single? It seemed single.
-                // Re-reading payment_verify.php: It takes item_id. 
-                // Issue: Cart has multiple items. user might want to pay for all.
-                // For now, let's assume single item checkout or loop in backend. 
-                // The existing rentals.php likely handles cart.
-                // Let's stick to existing logic for rentals.php for now for COD.
-                // For Razorpay, we need to adapt payment_verify to handle cart or loop here.
-                // Simplest approach for this task: Loop in frontend or update backend. 
-                // Let's pass 'cart' to payment_verify same as rentals.php and update payment_verify to handle it if needed.
-                // Actually payment_verify.php created previously expected single item_id.
-                // I should update payment_verify.php to handle cart array if I want multiple items.
-                // OR, for this iteration, let's just pass `item_id` of first item to verify if multiple not supported yet, 
-                // BUT user has a cart.
-                // Let's check rentals.php to see how it handles cart.
-                // Start with online payment branch.
-
-                item_id: cart[0].id, // simplified for now, ideally pass cart
+                cart: cart, // Pass full cart for Razorpay verification
                 start_date: startDate,
                 end_date: endDate,
                 duration: duration,
                 payment_method: paymentMethod,
                 amount: totalPayable, // total_amount
+                total_discount: totalDiscount,
                 delivery_method: deliveryMethod,
                 delivery_fee: deliveryCharge,
                 delivery_distance: deliveryDistance,
@@ -289,7 +346,8 @@ const Checkout = () => {
                                     deliveryAddress,
                                     city,
                                     pincode
-                                }
+                                },
+                                totalDiscount: totalDiscount
                             }
                         });
                     }, 1000);
@@ -360,7 +418,7 @@ const Checkout = () => {
                         }
                     },
                     prefill: {
-                        name: cardDetails.name || user.name || "",
+                        name: user.name || "",
                         email: user.email || "user@example.com",
                         contact: phone || user.phone || ""
                     },
@@ -411,6 +469,59 @@ const Checkout = () => {
                         <h3 style={{ marginTop: 0, marginBottom: '20px', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             1. Select Rental Period
                         </h3>
+                        <div style={{ marginBottom: '25px', border: '1px solid #f1f5f9', borderRadius: '12px', padding: '15px', background: '#f8fafc' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#64748b', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <FaCalendarAlt /> SELECT YOUR RANGE ON THE CALENDAR
+                            </div>
+                            <div className="checkout-calendar-wrapper">
+                                <Calendar
+                                    selectRange={true}
+                                    onChange={handleCalendarChange}
+                                    tileDisabled={({ date }) => {
+                                        const now = new Date();
+                                        now.setHours(0, 0, 0, 0);
+                                        return date < now || isDateFullyBooked(date);
+                                    }}
+                                    tileContent={({ date, view }) => {
+                                        if (view !== 'month') return null;
+                                        const now = new Date();
+                                        now.setHours(0, 0, 0, 0);
+                                        if (date < now) return null;
+
+                                        const info = getCombinedStockInfo(date);
+                                        if (!info) return null;
+
+                                        // 1. If stock is recovering for some items
+                                        if (info.totalRecovery > 0) {
+                                            return <div className="availability-badge recovery">+{info.totalRecovery}</div>;
+                                        }
+
+                                        // 2. If blocked for any item
+                                        if (isDateFullyBooked(date)) {
+                                            return <div className="dot-indicator booked"></div>;
+                                        }
+
+                                        // 3. If low stock (any item has only 1-2 left)
+                                        if (info.minLeft > 0 && info.minLeft <= 2) {
+                                            return <div className="availability-badge low-stock">{info.minLeft} Left</div>;
+                                        }
+
+                                        return null;
+                                    }}
+                                    value={(startDate && endDate) ? [new Date(startDate), new Date(endDate)] : (startDate ? new Date(startDate) : null)}
+                                    className="react-calendar readonly"
+                                />
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '10px', fontSize: '0.65rem', color: '#64748b' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <span style={{ width: '8px', height: '8px', background: '#f1f5f9', borderRadius: '50%', border: '1px solid #e2e8f0' }}></span> Available
+                                </span>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <span style={{ width: '8px', height: '8px', background: '#fee2e2', borderRadius: '50%', border: '1px solid #fca5a5' }}></span> Full for some items
+                                </span>
+                            </div>
+                        </div>
+
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#444', fontSize: '0.9rem' }}>Start Date</label>
@@ -434,8 +545,17 @@ const Checkout = () => {
                             </div>
                         </div>
                         {duration > 0 && (
-                            <div style={{ marginTop: '15px', padding: '12px', background: '#f0fdf4', color: '#15803d', borderRadius: '8px', textAlign: 'center', fontWeight: '600', fontSize: '0.95rem' }}>
-                                Rental Duration: {duration} Days
+                            <div style={{ marginTop: '15px', padding: '12px', background: availabilityResult.available ? '#f0fdf4' : '#fef2f2', color: availabilityResult.available ? '#15803d' : '#b91c1c', borderRadius: '8px', textAlign: 'center', fontWeight: '600', fontSize: '0.95rem', border: `1px solid ${availabilityResult.available ? '#dcfce7' : '#fee2e2'}` }}>
+                                {availabilityResult.available ? (
+                                    `Rental Duration: ${duration} Days`
+                                ) : (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                        <span>⚠️ Dates Unavailable</span>
+                                        <span style={{ fontSize: '0.8rem', fontWeight: 'normal' }}>
+                                            {availabilityResult.reason || `${availabilityResult.itemName} is out of stock on ${availabilityResult.date} (buffer day included).`}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </section>
@@ -596,152 +716,39 @@ const Checkout = () => {
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
 
-                            {/* Online Payment Options */}
-                            {/* Card Option */}
+                            {/* Pay Online Option */}
                             <label style={{
                                 display: 'block', padding: '15px', borderRadius: '10px', cursor: 'pointer',
-                                border: paymentMethod === 'card' ? '2px solid #1a1a1a' : '1px solid #e2e8f0',
-                                background: paymentMethod === 'card' ? '#f8fafc' : 'white',
+                                border: paymentMethod === 'online' ? '2px solid #1a1a1a' : '1px solid #e2e8f0',
+                                background: paymentMethod === 'online' ? '#f8fafc' : 'white',
                                 transition: 'all 0.2s'
                             }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: paymentMethod === 'card' ? '15px' : '0' }}>
-                                    <input type="radio" name="payment" value="card" checked={paymentMethod === 'card'} onChange={() => setPaymentMethod('card')} />
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                    <input
+                                        type="radio"
+                                        name="payment"
+                                        value="online"
+                                        checked={paymentMethod === 'online' || paymentMethod === 'card' || paymentMethod === 'upi' || paymentMethod === 'netbanking'}
+                                        onChange={() => setPaymentMethod('online')}
+                                    />
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
-                                        <FaCreditCard size={20} color="#475569" />
-                                        <span style={{ fontWeight: '600', color: '#334155' }}>Credit / Debit Card</span>
+                                        <FaLock size={20} color="#16a34a" />
+                                        <div>
+                                            <span style={{ fontWeight: '600', color: '#334155', display: 'block' }}>Pay Online Securely</span>
+                                            <span style={{ fontSize: '0.8rem', color: '#64748b' }}>UPI, Credit/Debit Cards, Netbanking via Razorpay</span>
+                                        </div>
                                     </div>
-                                    <div style={{ display: 'flex', gap: '5px' }}>
-                                        {['visa', 'mastercard', 'rupay'].map(c => <div key={c} style={{ width: '30px', height: '20px', background: '#e2e8f0', borderRadius: '4px' }}></div>)}
+                                    <div style={{ display: 'flex', gap: '10px' }}>
+                                        <FaMobileAlt size={20} color="#94a3b8" />
+                                        <FaCreditCard size={20} color="#94a3b8" />
+                                        <FaUniversity size={20} color="#94a3b8" />
                                     </div>
                                 </div>
-
-                                {paymentMethod === 'card' && (
-                                    <div style={{ paddingLeft: '30px', display: 'grid', gap: '15px', animation: 'fadeIn 0.3s' }}>
-                                        <input
-                                            type="text" placeholder="Card Number" maxLength="19"
-                                            value={cardDetails.number} onChange={e => setCardDetails({ ...cardDetails, number: e.target.value })}
-                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                        />
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                                            <input
-                                                type="text" placeholder="MM / YY" maxLength="5"
-                                                value={cardDetails.expiry} onChange={e => setCardDetails({ ...cardDetails, expiry: e.target.value })}
-                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                            />
-                                            <input
-                                                type="password" placeholder="CVV" maxLength="3"
-                                                value={cardDetails.cvv} onChange={e => setCardDetails({ ...cardDetails, cvv: e.target.value })}
-                                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                            />
-                                        </div>
-                                        <input
-                                            type="text" placeholder="Card Holder Name"
-                                            value={cardDetails.name} onChange={e => setCardDetails({ ...cardDetails, name: e.target.value })}
-                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                        />
-                                    </div>
-                                )}
                             </label>
 
-                            {/* UPI Option */}
+                            {/* Pay on Pickup / COD Option */}
                             <label style={{
                                 display: 'block', padding: '15px', borderRadius: '10px', cursor: 'pointer',
-                                border: paymentMethod === 'upi' ? '2px solid #1a1a1a' : '1px solid #e2e8f0',
-                                background: paymentMethod === 'upi' ? '#f8fafc' : 'white',
-                                transition: 'all 0.2s'
-                            }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: paymentMethod === 'upi' ? '15px' : '0' }}>
-                                    <input type="radio" name="payment" value="upi" checked={paymentMethod === 'upi'} onChange={() => setPaymentMethod('upi')} />
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
-                                        <FaMobileAlt size={20} color="#475569" />
-                                        <span style={{ fontWeight: '600', color: '#334155' }}>UPI</span>
-                                    </div>
-                                    <span style={{ fontSize: '0.8rem', color: '#94a3b8', fontWeight: '500' }}>GPay, PhonePe, Paytm</span>
-                                </div>
-
-                                {paymentMethod === 'upi' && (
-                                    <div style={{ paddingLeft: '30px', animation: 'fadeIn 0.3s' }}>
-                                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                            <input
-                                                type="text" placeholder="Mobile / Username"
-                                                value={upiId} onChange={e => handleUpiChange(e.target.value)}
-                                                style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                            />
-                                            <select
-                                                value={upiHandle}
-                                                onChange={e => { setUpiHandle(e.target.value); setIsUpiVerified(false); }}
-                                                style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f1f5f9' }}
-                                            >
-                                                <option value="@oksbi">@oksbi</option>
-                                                <option value="@okhdfcbank">@okhdfcbank</option>
-                                                <option value="@okicici">@okicici</option>
-                                                <option value="@okaxis">@okaxis</option>
-                                                <option value="@ybl">@ybl</option>
-                                                <option value="@paytm">@paytm</option>
-                                                <option value="@upi">@upi</option>
-                                            </select>
-                                        </div>
-
-                                        <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                            {isUpiVerified ? (
-                                                <div style={{ color: '#16a34a', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                                                    <FaCheckCircle style={{ marginRight: '5px' }} /> Verified Name: {verifiedName}
-                                                </div>
-                                            ) : (
-                                                <button
-                                                    onClick={(e) => { e.preventDefault(); verifyUpi(); }}
-                                                    disabled={isVerifying || !upiId}
-                                                    style={{
-                                                        padding: '8px 15px', fontSize: '0.85rem',
-                                                        background: isVerifying ? '#e2e8f0' : '#1a1a1a',
-                                                        color: isVerifying ? '#64748b' : 'white',
-                                                        border: 'none', borderRadius: '6px', cursor: isVerifying ? 'wait' : 'pointer'
-                                                    }}
-                                                >
-                                                    {isVerifying ? 'Verifying...' : 'Verify'}
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </label>
-
-                            {/* Net Banking Option */}
-                            <label style={{
-                                display: 'block', padding: '15px', borderRadius: '10px', cursor: 'pointer',
-                                border: paymentMethod === 'netbanking' ? '2px solid #1a1a1a' : '1px solid #e2e8f0',
-                                background: paymentMethod === 'netbanking' ? '#f8fafc' : 'white'
-                            }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: paymentMethod === 'netbanking' ? '15px' : '0' }}>
-                                    <input type="radio" name="payment" value="netbanking" checked={paymentMethod === 'netbanking'} onChange={() => setPaymentMethod('netbanking')} />
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
-                                        <FaUniversity size={20} color="#475569" />
-                                        <span style={{ fontWeight: '600', color: '#334155' }}>Net Banking</span>
-                                    </div>
-                                </div>
-
-                                {paymentMethod === 'netbanking' && (
-                                    <div style={{ paddingLeft: '30px', animation: 'fadeIn 0.3s' }}>
-                                        <select
-                                            value={bank} onChange={e => setBank(e.target.value)}
-                                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                                        >
-                                            <option value="">Select Bank</option>
-                                            <option value="sbi">State Bank of India</option>
-                                            <option value="hdfc">HDFC Bank</option>
-                                            <option value="icici">ICICI Bank</option>
-                                            <option value="axis">Axis Bank</option>
-                                        </select>
-                                    </div>
-                                )}
-                            </label>
-
-
-                            {/* Pay on Pickup Option - Always Visible if Pickup is selected, or as an option if delivery */}
-                            {/* Actually, if Pickup, show ONLY Pay on Pickup. If Delivery, show ONLY COD (or online). */}
-
-                            <label style={{
-                                display: 'block', padding: '15px', borderRadius: '10px', cursor: deliveryMethod === 'pickup' ? 'pointer' : 'pointer',
                                 border: paymentMethod === 'cod' ? '2px solid #1a1a1a' : '1px solid #e2e8f0',
                                 background: paymentMethod === 'cod' ? '#f8fafc' : 'white',
                                 transition: 'all 0.2s'
@@ -806,6 +813,12 @@ const Checkout = () => {
                                 <span>Total Rent ({duration} days)</span>
                                 <span>₹{totalRent}</span>
                             </div>
+                            {totalDiscount > 0 && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '0.9rem', color: '#16a34a', fontWeight: 'bold' }}>
+                                    <span>Discount Applied</span>
+                                    <span>-₹{totalDiscount.toFixed(2)}</span>
+                                </div>
+                            )}
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '0.9rem', color: '#64748b' }}>
                                 <span>Security Deposit (Refundable)</span>
                                 <span>₹{depositAmount}</span>

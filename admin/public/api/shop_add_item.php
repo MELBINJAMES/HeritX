@@ -111,8 +111,8 @@ try {
     global $conn;
     
     if (isset($conn) && $conn instanceof mysqli) {
-        // Insert into item_condition instead of quality, and is_approved = 0 (Pending)
-        $stmt = $conn->prepare("INSERT INTO items (owner_id, name, category, item_condition, quantity, price_per_day, deposit_amount, description, image_url, occasion, is_available, is_approved, dos, donts) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, ?, ?)");
+        // Insert into item_condition instead of quality, and is_approved = 1 (Auto-Approved)
+        $stmt = $conn->prepare("INSERT INTO items (owner_id, name, category, item_condition, quantity, price_per_day, deposit_amount, description, image_url, occasion, is_available, is_approved, dos, donts) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, ?, ?)");
         if (!$stmt) {
              throw new Exception("Prepare failed: " . $conn->error);
         }

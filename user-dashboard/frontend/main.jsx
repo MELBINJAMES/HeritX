@@ -6,6 +6,7 @@ import App from './App.jsx'
 import './src/styles/index.css'
 import { AuthProvider } from './src/context/AuthContext';
 import { LanguageProvider } from './src/context/LanguageContext';
+import { LocationProvider } from './src/context/LocationContext';
 import { CartProvider } from './src/context/CartContext';
 import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
@@ -18,12 +19,14 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <GoogleOAuthProvider clientId={googleClientId}>
                 <AuthProvider>
                     <LanguageProvider>
-                        <CartProvider>
-                            <BrowserRouter>
-                                <Toaster position="top-center" reverseOrder={false} />
-                                <App />
-                            </BrowserRouter>
-                        </CartProvider>
+                        <LocationProvider>
+                            <CartProvider>
+                                <BrowserRouter>
+                                    <Toaster position="top-center" reverseOrder={false} />
+                                    <App />
+                                </BrowserRouter>
+                            </CartProvider>
+                        </LocationProvider>
                     </LanguageProvider>
                 </AuthProvider>
             </GoogleOAuthProvider>

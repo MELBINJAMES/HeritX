@@ -65,7 +65,10 @@ const Sidebar = () => {
                 >
                     <FaArrowLeft />
                 </button>
-                <h2 style={{ margin: 0, fontSize: '1.8rem', color: '#1a1a1a' }}>HeritX</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', margin: 0 }}>
+                    <span style={{ fontSize: '1.6rem', fontWeight: 800, fontFamily: 'Georgia, serif', letterSpacing: '1px', lineHeight: 1.1, color: '#1e293b' }}>HeritX</span>
+                    <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '3px', color: '#64748b', fontWeight: 600 }}>Wear the Legacy</span>
+                </div>
             </div>
 
             <nav className="nav-menu">
@@ -98,7 +101,7 @@ const Sidebar = () => {
             </nav>
 
             <div className="logout-section">
-                <button className="nav-item logout" onClick={() => window.location.href = 'http://localhost:5174/finder/login'}>
+                <button className="nav-item logout" onClick={() => window.location.href = 'http://localhost:3001/login'}>
                     <span className="icon"><FaSignOutAlt /></span>
                     <span className="label">Logout</span>
                 </button>

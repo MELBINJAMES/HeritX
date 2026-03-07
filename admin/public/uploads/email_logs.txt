@@ -56,3 +56,14 @@ Your shop registration has been approved on 2026-02-04 07:19:18. You can now log
 Welcome to HeritX!
 ----------------------------------
 
+--- EMAIL SENT [2026-02-23 05:43:32] ---
+To: shop@gmail.com
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear kudu stores ,
+
+Your shop registration has been approved on 2026-02-23 05:43:29. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+

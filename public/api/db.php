@@ -6,7 +6,7 @@ header("Content-Type: application/json; charset=UTF-8");
 $servername = "127.0.0.1";
 $username = "root";
 $password = "";
-$dbname = "hertix_db";
+$dbname = "HeritX";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 

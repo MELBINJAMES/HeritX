@@ -13,14 +13,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+require_once '../../../admin/public/api/db.php'; // Use the MySQLi connection used in rentals.php
 require_once '../config/config_razorpay.php';
-require_once '../config/db.php'; // Ensure db connection is available
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-$razorpay_order_id = $data['razorpay_order_id'] ?? '';
-$razorpay_payment_id = $data['razorpay_payment_id'] ?? '';
-$razorpay_signature = $data['razorpay_signature'] ?? '';
+$razorpay_order_id = isset($data['razorpay_order_id']) ? $data['razorpay_order_id'] : '';
+$razorpay_payment_id = isset($data['razorpay_payment_id']) ? $data['razorpay_payment_id'] : '';
+$razorpay_signature = isset($data['razorpay_signature']) ? $data['razorpay_signature'] : '';
 
 if (empty($razorpay_order_id) || empty($razorpay_payment_id) || empty($razorpay_signature)) {
     echo json_encode(['status' => 'error', 'message' => 'Missing payment details']);
@@ -32,36 +32,157 @@ $generated_signature = hash_hmac('sha256', $razorpay_order_id . "|" . $razorpay_
 if ($generated_signature === $razorpay_signature) {
     // Payment Verified
     
-    // Extract other data to save to database
-    $user_id = intval($data['user_id'] ?? 0);
-    $item_id = intval($data['item_id'] ?? 0);
-    $start_date = $data['start_date'] ?? date('Y-m-d');
-    $end_date = $data['end_date'] ?? date('Y-m-d');
-    $total_price = floatval($data['amount'] ?? 0);
-    $delivery_method = $data['delivery_method'] ?? 'pickup';
+    $userId = isset($data['user_id']) ? intval($data['user_id']) : 0;
+    $cart = isset($data['cart']) ? $data['cart'] : [];
+    $paymentMethod = isset($data['payment_method']) ? $data['payment_method'] : 'online';
+    $startDate = isset($data['start_date']) ? $data['start_date'] : date('Y-m-d');
+    $endDate = isset($data['end_date']) ? $data['end_date'] : date('Y-m-d');
+    $totalAmount = isset($data['amount']) ? floatval($data['amount']) : 0.00;
+    $duration = isset($data['duration']) ? intval($data['duration']) : 1;
+    $deliveryMethod = isset($data['delivery_method']) ? $data['delivery_method'] : 'pickup';
+    $pickupTime = isset($data['pickup_time']) ? $data['pickup_time'] : null;
     
-    // Delivery fields
-    $address = $data['address'] ?? '';
-    $city = $data['city'] ?? '';
-    $pincode = $data['pincode'] ?? '';
-    $contact_number = $data['contact_number'] ?? '';
+    $delAddr = isset($data['address']) ? $data['address'] : null;
+    $delCity = isset($data['city']) ? $data['city'] : null;
+    $delPin = isset($data['pincode']) ? $data['pincode'] : null;
+    $contactPhone = isset($data['contact_number']) ? $data['contact_number'] : null;
+    $totalDeliveryFee = isset($data['delivery_fee']) ? floatval($data['delivery_fee']) : 0.00;
+    $totalDistance = isset($data['delivery_distance']) ? floatval($data['delivery_distance']) : 0.00;
 
-    if ($user_id <= 0 || $item_id <= 0) {
-        echo json_encode(['status' => 'error', 'message' => 'Invalid User or Item ID']);
+    if ($userId <= 0 || empty($cart)) {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid User ID or empty cart']);
         exit;
     }
 
+    $conn->begin_transaction();
+
     try {
-        // Ensure columns exist or handle errors. Ideally we run a migration.
-        // Updated query to match schema.sql keys: start_date, end_date (not rental_start/end)
-        $stmt = $pdo->prepare("INSERT INTO rentals (user_id, item_id, start_date, end_date, total_price, status, payment_status, delivery_method, address, city, pincode, contact_number, razorpay_order_id, razorpay_payment_id) VALUES (?, ?, ?, ?, ?, 'pending', 'paid', ?, ?, ?, ?, ?, ?, ?)");
-        
-        if ($stmt->execute([$user_id, $item_id, $start_date, $end_date, $total_price, $delivery_method, $address, $city, $pincode, $contact_number, $razorpay_order_id, $razorpay_payment_id])) {
-            echo json_encode(['status' => 'success', 'message' => 'Payment verified and order created']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Payment verified but failed to save order']);
+        $itemCount = count($cart);
+        $feePerItem = $itemCount > 0 ? $totalDeliveryFee / $itemCount : 0;
+
+        // 1. Insert Rentals
+        foreach ($cart as $item) {
+            $itemTotalRaw = $item['price_per_day'] * $item['qty'] * $duration; 
+
+            // Check for Active Shop Discount
+            $discountPercent = isset($item['offer_discount_percent']) ? intval($item['offer_discount_percent']) : 0;
+            $hasActiveOffer = false;
+            if (!empty($item['offer_start']) && !empty($item['offer_end'])) {
+                try {
+                    $now = new DateTime();
+                    $start = new DateTime($item['offer_start']);
+                    $end = new DateTime($item['offer_end']);
+                    if ($start <= $now && $end >= $now) {
+                        $hasActiveOffer = true;
+                    }
+                } catch (Exception $e) {}
+            }
+
+            $itemTotal = $itemTotalRaw;
+            if ($hasActiveOffer && $discountPercent > 0) {
+                $itemDiscount = $itemTotalRaw * ($discountPercent / 100);
+                $itemTotal = $itemTotalRaw - $itemDiscount;
+            }
+
+            // Auto-approve all orders to confirmed status after payment
+            $status = 'confirmed';
+
+            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, start_date, end_date, total_price, total_paid, status, delivery_method, delivery_fee, delivery_distance, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, razorpay_order_id, razorpay_payment_id, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, 'paid')");
+            
+            if (!$stmt) throw new Exception("Prepare failed: " . $conn->error);
+
+            // Types: iissddssddssssssss
+            // Wait, let's count: user_id(i), item_id(i), start_date(s), end_date(s), total_price(d), total_paid(d), status(s), delivery_method(s), delivery_fee(d), delivery_distance(d), delivery_address(s), city(s), pincode(s), contact_phone(s), pickup_time(s), payment_method(s), razorpay_order_id(s), razorpay_payment_id(s) -> 18 items.
+            // string: iissddssddssssssss
+            $stmt->bind_param("iissddssddssssssss", $userId, $item['id'], $startDate, $endDate, $itemTotal, $totalAmount, $status, $deliveryMethod, $feePerItem, $totalDistance, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod, $razorpay_order_id, $razorpay_payment_id); 
+            
+            if (!$stmt->execute()) {
+                error_log("Rentals Insertion Execute failed: " . $stmt->error);
+                throw new Exception("Execute failed: " . $stmt->error);
+            }
+            $stmt->close();
+
+            // Decrease quantity (LEGACY: Removed to support real-time availability calculation from rentals table)
+            // $updateItem = $conn->query("UPDATE items SET quantity = quantity - " . intval($item['qty']) . " WHERE id = " . intval($item['id']));
+            // if (!$updateItem) throw new Exception("Failed to update item stock: " . $conn->error);
+
+            // Credit Shop Owner Logic
+            $resOwner = $conn->query("SELECT owner_id FROM items WHERE id = " . intval($item['id']));
+            if ($resOwner && $resOwner->num_rows > 0) {
+                $ownerId = $resOwner->fetch_assoc()['owner_id'];
+                $creditAmount = $itemTotal + $feePerItem;
+
+                $updateWallet = $conn->query("UPDATE users SET wallet_balance = wallet_balance + $creditAmount WHERE id = $ownerId");
+                if (!$updateWallet) throw new Exception("Failed to credit shop owner: " . $conn->error);
+
+                $stmtTrans = $conn->prepare("INSERT INTO payments (user_id, amount, payment_type, status, transaction_date) VALUES (?, ?, 'credit_revenue', 'completed', NOW())");
+                $stmtTrans->bind_param("id", $ownerId, $creditAmount);
+                $stmtTrans->execute();
+                $stmtTrans->close();
+            }
         }
-    } catch (PDOException $e) {
+
+        // 2. Insert Payment Records
+        $totalDeposit = 0;
+        foreach ($cart as $item) {
+            $deposit = isset($item['deposit_amount']) ? $item['deposit_amount'] : 0;
+            $totalDeposit += $deposit * $item['qty'];
+        }
+        
+        $rentAmount = $totalAmount - $totalDeposit;
+
+        // Insert Rent Payment
+        $stmt = $conn->prepare("INSERT INTO payments (user_id, amount, payment_type, status, transaction_date) VALUES (?, ?, 'rent', 'paid', NOW())");
+        if (!$stmt) throw new Exception("Payment Prepare failed: " . $conn->error);
+        $stmt->bind_param("id", $userId, $rentAmount);
+        if (!$stmt->execute()) throw new Exception("Payment Execute failed: " . $stmt->error);
+        $rentPaymentId = $stmt->insert_id;
+        $stmt->close();
+
+        // Insert Deposit Payment
+        $depositPaymentId = null;
+        if ($totalDeposit > 0) {
+            $stmt = $conn->prepare("INSERT INTO payments (user_id, amount, payment_type, status, transaction_date) VALUES (?, ?, 'deposit', 'paid', NOW())");
+            if (!$stmt) throw new Exception("Deposit Prepare failed: " . $conn->error);
+            $stmt->bind_param("id", $userId, $totalDeposit);
+            if (!$stmt->execute()) throw new Exception("Deposit Execute failed: " . $stmt->error);
+            $depositPaymentId = $stmt->insert_id;
+            $stmt->close();
+        }
+
+        // 3. Create Notification
+        $title = "Payment & Booking Confirmed";
+        $message = "Your online payment and rental for " . count($cart) . " items was successful.";
+        $stmt = $conn->prepare("INSERT INTO notifications (user_id, title, message) VALUES (?, ?, ?)");
+        if (!$stmt) throw new Exception("Notification Prepare failed: " . $conn->error);
+        $stmt->bind_param("iss", $userId, $title, $message);
+        if (!$stmt->execute()) throw new Exception("Notification Execute failed: " . $stmt->error);
+        $stmt->close();
+        
+        // Calculate total discount from payload
+        $totalDiscount = isset($data['total_discount']) ? floatval($data['total_discount']) : 0;
+
+        // 4. Send WhatsApp Message
+        if (!empty($contactPhone)) {
+            $wa_message = "Hello! Your HeritX order #$rentPaymentId is PAID & confirmed. \nItems: " . count($cart);
+            if ($totalDiscount > 0) {
+                $wa_message .= "\nShop Discount: -₹" . number_format($totalDiscount, 2);
+            }
+            $wa_message .= "\nTotal Paid: ₹$totalAmount\n";
+            if ($deliveryMethod == 'delivery') {
+                $wa_message .= "Delivery to: $delAddr, $delCity - $delPin";
+            } else {
+                $wa_message .= "Please pick up your items from our store.";
+            }
+            error_log("WHATSAPP_SENT: To " . $contactPhone . " -> " . str_replace("\n", " ", $wa_message));
+        }
+
+        $conn->commit();
+        echo json_encode(['status' => 'success', 'message' => 'Payment verified and order created', 'payment_id' => $rentPaymentId]);
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        error_log("Razorpay Verification Database Error: " . $e->getMessage());
         echo json_encode(['status' => 'error', 'message' => 'Database error: ' . $e->getMessage()]);
     }
 } else {
