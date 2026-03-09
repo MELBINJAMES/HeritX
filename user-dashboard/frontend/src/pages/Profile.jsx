@@ -5,7 +5,7 @@ import '../styles/Profile.css';
 import toast from '../utils/toast';
 
 const Profile = () => {
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -14,19 +14,6 @@ const Profile = () => {
     const [activeTab, setActiveTab] = useState('overview');
     const [saving, setSaving] = useState(false);
 
-    // Password Change State
-    const [passwordData, setPasswordData] = useState({
-        current_password: '',
-        new_password: '',
-        confirm_password: ''
-    });
-
-    const validatePassword = (pwd) => {
-        if (pwd.length < 8) return "Password must be at least 8 characters.";
-        if (!/[A-Z]/.test(pwd)) return "Password must have at least one uppercase letter.";
-        if (!/[a-z]/.test(pwd)) return "Password must have at least one lowercase letter.";
-        return null;
-    };
 
     const showNotification = (message, type = 'success') => {
         if (type === 'success') toast.success(message);
@@ -90,49 +77,16 @@ const Profile = () => {
             const result = await response.json();
             if (result.success) {
                 showNotification('Profile updated successfully!', 'success');
+                // Sync the AuthContext with updated fields (excluding binary file)
+                const { profile_image, ...updatedFields } = profile;
+                if (result.image_url) updatedFields.profile_image = result.image_url;
+                updateUser(updatedFields);
             } else {
                 showNotification('Failed to update: ' + result.message, 'error');
             }
         } catch (error) {
             console.error('Update error', error);
             showNotification('An error occurred while updating', 'error');
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handlePasswordChange = async () => {
-        if (!passwordData.current_password || !passwordData.new_password || !passwordData.confirm_password) {
-            showNotification('Please fill all password fields', 'error');
-            return;
-        }
-        if (passwordData.new_password !== passwordData.confirm_password) {
-            showNotification('New passwords do not match', 'error');
-            return;
-        }
-
-        const pwdError = validatePassword(passwordData.new_password);
-        if (pwdError) {
-            showNotification(pwdError, 'error');
-            return;
-        }
-
-        setSaving(true);
-        try {
-            const response = await fetch(`http://localhost/HertiX/user-dashboard/backend/api/profile.php?action=change_password&user_id=${user.id}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(passwordData)
-            });
-            const result = await response.json();
-            if (result.success) {
-                showNotification('Password updated successfully!', 'success');
-                setPasswordData({ current_password: '', new_password: '', confirm_password: '' });
-            } else {
-                showNotification(result.message, 'error');
-            }
-        } catch (error) {
-            showNotification('An error occurred', 'error');
         } finally {
             setSaving(false);
         }
@@ -206,12 +160,6 @@ const Profile = () => {
                 >
                     Edit Profile
                 </button>
-                <button
-                    className={`tab-btn ${activeTab === 'security' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('security')}
-                >
-                    Security
-                </button>
             </div>
 
             {/* Tab Content */}
@@ -269,10 +217,6 @@ const Profile = () => {
                                     <span className="info-label">Phone Number</span>
                                     <span className="info-value">{profile.phone || '-'}</span>
                                 </div>
-                                <div className="info-item" style={{ gridColumn: '1 / -1' }}>
-                                    <span className="info-label">Shipping Address</span>
-                                    <span className="info-value">{profile.address || '-'}</span>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -315,10 +259,6 @@ const Profile = () => {
                                 <input type="text" name="location" value={profile.location || ''} onChange={handleChange} className="form-input" placeholder="e.g. Kochi" />
                             </div>
                             <div className="form-group full-width">
-                                <label className="form-label">Shipping Address</label>
-                                <textarea name="address" value={profile.address || ''} onChange={handleChange} className="form-input form-textarea" rows={3} placeholder="Full address for deliveries" />
-                            </div>
-                            <div className="form-group full-width">
                                 <label className="form-label">Bio (Public)</label>
                                 <textarea name="bio" value={profile.bio || ''} onChange={handleChange} className="form-input form-textarea" rows={3} placeholder="Tell us about yourself..." />
                             </div>
@@ -342,64 +282,10 @@ const Profile = () => {
                     </div>
                 )}
 
-                {/* SECURITY TAB */}
-                {activeTab === 'security' && (
-                    <div className="profile-card">
-                        <h3 className="card-title">Password & Security</h3>
-                        <p style={{ color: '#64748b', marginBottom: '25px', fontSize: '0.9rem' }}>
-                            Ensure your account stays secure by using a strong password. Current requirements: 8+ characters, at least one uppercase and one lowercase letter.
-                        </p>
-
-                        <div className="form-grid">
-                            <div className="form-group full-width">
-                                <label className="form-label">Current Password</label>
-                                <input
-                                    type="password"
-                                    value={passwordData.current_password}
-                                    onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
-                                    className="form-input"
-                                />
-                            </div>
-
-                            <div className="form-group full-width">
-                                <label className="form-label">New Password</label>
-                                <input
-                                    type="password"
-                                    value={passwordData.new_password}
-                                    onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                                    className="form-input"
-                                    placeholder="8+ chars, 1 uppercase, 1 lowercase"
-                                />
-                            </div>
-
-                            <div className="form-group full-width">
-                                <label className="form-label">Confirm New Password</label>
-                                <input
-                                    type="password"
-                                    value={passwordData.confirm_password}
-                                    onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                                    className="form-input"
-                                />
-                            </div>
-                        </div>
-
-                        <div style={{ textAlign: 'right', marginTop: '20px' }}>
-                            <button
-                                onClick={handlePasswordChange}
-                                disabled={saving}
-                                className="save-btn"
-                                style={{ background: '#1e293b' }}
-                            >
-                                {saving ? 'Updating...' : 'Update Password'}
-                            </button>
-                        </div>
-                    </div>
-                )}
-
             </div>
 
             {/* Custom Toast Notification handled globally */}
-        </div>
+        </div >
     );
 };
 

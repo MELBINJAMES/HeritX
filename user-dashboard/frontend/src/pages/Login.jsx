@@ -19,7 +19,10 @@ const Login = () => {
                 const res = await fetch('http://localhost/HertiX/admin/public/api/google_login.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: tokenResponse.access_token }),
+                    body: JSON.stringify({
+                        token: tokenResponse.access_token,
+                        required_role: 'Finder'
+                    }),
                 });
 
                 const data = await res.json();
@@ -49,7 +52,7 @@ const Login = () => {
             const response = await fetch('http://localhost/HertiX/admin/public/api/login.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, password, required_role: 'Finder' }),
             });
 
             const data = await response.json();
@@ -202,7 +205,7 @@ const Login = () => {
                 </form>
 
                 <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '0.9rem', color: '#64748b' }}>
-                    Don't have an account? <a href="http://localhost:3001/register/finder" style={{ color: '#1a1a1a', fontWeight: '600', textDecoration: 'none' }}>Sign Up</a>
+                    Don't have an account? <a href="http://localhost:3002/register/finder" style={{ color: '#1a1a1a', fontWeight: '600', textDecoration: 'none' }}>Sign Up</a>
                 </div>
             </div>
         </div>

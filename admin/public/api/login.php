@@ -27,7 +27,7 @@ if ($email === 'admin@heritx.com' && $password === 'admin123') {
 }
 
 // 1. Check Users Table (Unified)
-$sql = "SELECT id, name, password, role, is_approved FROM users WHERE email = '$email'";
+$sql = "SELECT id, name, email, phone, address, location, gender, dob, bio, profile_image, role, is_approved FROM users WHERE email = '$email'";
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
@@ -40,16 +40,26 @@ if ($result->num_rows > 0) {
              exit();
         }
 
-        // In a real app, you would generate a JWT token here
+        // Return ALL fields for the frontend context
+        unset($row['password']); // Extra security
+
+        // Role Validation
+        $required_role = $data->required_role ?? null;
+        if ($required_role) {
+            if ($required_role === 'Finder' && ($row['role'] === 'Shop Owner' || $row['role'] === 'admin')) {
+                echo json_encode(["status" => "error", "message" => "This email is registered as a Shop Owner. Please use another email."]);
+                exit();
+            }
+            if ($required_role === 'Shop Owner' && $row['role'] === 'Finder') {
+                echo json_encode(["status" => "error", "message" => "This email is registered as a Renter. Please use another email."]);
+                exit();
+            }
+        }
+
         echo json_encode([
             "status" => "success", 
             "message" => "Login successful",
-            "user" => [
-                "id" => $row['id'],
-                "name" => $row['name'],
-                "role" => $row['role'],
-                "email" => $email
-            ]
+            "user" => $row
         ]);
         exit();
     } else {

@@ -67,3 +67,36 @@ Your shop registration has been approved on 2026-02-23 05:43:29. You can now log
 Welcome to HeritX!
 ----------------------------------
 
+--- EMAIL SENT [2026-03-09 06:56:36] ---
+To: new_owner_1772983443208@example.com
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear Test Shop 1772983442918,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-09 06:56:37] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-09 06:56:37] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- FORGOT PASSWORD EMAIL [2026-03-09 07:53:05] ---
+To: melbinjames267@gmail.com
+Status: SMTP Sent
+Code: 142622
+----------------------------------
+

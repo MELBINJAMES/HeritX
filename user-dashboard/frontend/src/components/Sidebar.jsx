@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { FaHome, FaSearch, FaBoxOpen, FaCreditCard, FaUser, FaQuestionCircle, FaSignOutAlt, FaArrowLeft, FaHeart } from 'react-icons/fa';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { fetchProfile } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { logout } = useAuth();
     const activeRoute = location.pathname;
     const [profileImage, setProfileImage] = useState(null);
 
@@ -101,7 +103,7 @@ const Sidebar = () => {
             </nav>
 
             <div className="logout-section">
-                <button className="nav-item logout" onClick={() => window.location.href = 'http://localhost:3001/login'}>
+                <button className="nav-item logout" onClick={logout}>
                     <span className="icon"><FaSignOutAlt /></span>
                     <span className="label">Logout</span>
                 </button>

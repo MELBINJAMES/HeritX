@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaArrowLeft, FaCreditCard, FaLock, FaCheckCircle, FaMobileAlt, FaUniversity, FaMoneyBillWave, FaCalendarAlt } from 'react-icons/fa';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
@@ -13,8 +13,14 @@ const Checkout = () => {
     const { cart, clearCart } = useCart();
     const { t } = useLanguage();
     const navigate = useNavigate();
+    const location = useLocation();
+    const { user } = useAuth();
     const [isProcessing, setIsProcessing] = useState(false);
     const [cartAvailability, setCartAvailability] = useState({}); // itemId => {total_quantity, occupancy}
+
+    // Determine if we are checking out a single item (Rent Now) or the whole cart
+    const directItem = location.state?.directItem;
+    const checkoutItems = directItem ? [directItem] : cart;
 
     // Form and Selection State
     const [startDate, setStartDate] = useState('');
@@ -22,7 +28,7 @@ const Checkout = () => {
 
     const loadAvailability = async () => {
         const availability = {};
-        for (const item of cart) {
+        for (const item of checkoutItems) {
             try {
                 const API_URL = 'http://localhost/HertiX/user-dashboard/backend/api/items.php';
                 const res = await fetch(`${API_URL}?action=availability&id=${item.id}`);
@@ -38,8 +44,8 @@ const Checkout = () => {
     };
 
     React.useEffect(() => {
-        if (cart.length > 0) loadAvailability();
-    }, [cart]);
+        if (checkoutItems.length > 0) loadAvailability();
+    }, [checkoutItems]);
 
     const isRangeAvailable = () => {
         if (!startDate || !endDate) return { available: true };
@@ -50,7 +56,7 @@ const Checkout = () => {
         const checkEnd = new Date(end);
         checkEnd.setDate(checkEnd.getDate() + 1);
 
-        for (const item of cart) {
+        for (const item of checkoutItems) {
             const avail = cartAvailability[item.id];
             if (!avail) continue;
 
@@ -89,7 +95,7 @@ const Checkout = () => {
 
     const isDateFullyBooked = (date) => {
         const dateStr = date.toLocaleDateString('en-CA'); // YYYY-MM-DD local
-        for (const item of cart) {
+        for (const item of checkoutItems) {
             const avail = cartAvailability[item.id];
             if (!avail) continue;
             const occupancy = avail.occupancy[dateStr] || 0;
@@ -106,7 +112,7 @@ const Checkout = () => {
         let totalQuantity = 0;
         let anyItemUnloaded = false;
 
-        for (const item of cart) {
+        for (const item of checkoutItems) {
             const avail = cartAvailability[item.id];
             if (!avail) {
                 anyItemUnloaded = true;
@@ -137,17 +143,25 @@ const Checkout = () => {
     const duration = calculateDuration();
 
     const [paymentMethod, setPaymentMethod] = useState('online'); // Default to new online option
-    const [deliveryMethod, setDeliveryMethod] = useState('pickup');
+    const [deliveryMethod] = useState('pickup');
 
     // Delivery & Contact State
-    const [phone, setPhone] = useState('');
+    const [phone, setPhone] = useState(user?.phone || '');
     const [deliveryAddress, setDeliveryAddress] = useState('');
-    const [city, setCity] = useState('');
+    const [city, setCity] = useState(user?.location || '');
     const [pincode, setPincode] = useState('');
+
+    // Sync from user context if it updates (e.g. they just came from Profile)
+    React.useEffect(() => {
+        if (user) {
+            if (!phone && user.phone) setPhone(user.phone);
+            if (!city && user.location) setCity(user.location);
+        }
+    }, [user]);
 
     const calculateTotal = () => {
         if (duration === 0) return 0;
-        return cart.reduce((total, item) => {
+        return checkoutItems.reduce((total, item) => {
             return total + (item.price_per_day * item.qty * duration);
         }, 0);
     };
@@ -155,7 +169,7 @@ const Checkout = () => {
     const calculateDiscount = () => {
         if (duration === 0) return 0;
         const now = new Date();
-        return cart.reduce((totalDiscount, item) => {
+        return checkoutItems.reduce((totalDiscount, item) => {
             const hasActiveOffer = item.offer_start && item.offer_end &&
                 new Date(item.offer_start) <= now && new Date(item.offer_end) >= now;
 
@@ -169,7 +183,7 @@ const Checkout = () => {
 
     const totalRent = calculateTotal();
     const totalDiscount = calculateDiscount();
-    const depositAmount = cart.reduce((total, item) => total + (item.deposit_amount || 0) * item.qty, 0); // Mock deposit if not in cart item, assuming 0 or add mock property
+    const depositAmount = checkoutItems.reduce((total, item) => total + (item.deposit_amount || 0) * item.qty, 0); // Mock deposit if not in cart item, assuming 0 or add mock property
     // Actually items table has deposit_amount. Let's assume it's passed in cart item.
     // If cart item doesn't have it, we default to 0. 
     // Wait, cart items from localStorage might not have all fields if not added. ItemDetails adds it?
@@ -206,7 +220,7 @@ const Checkout = () => {
         setIsCalculatingDelivery(true);
         try {
             // Use the first item to determine the shop location
-            const itemId = cart.length > 0 ? cart[0].id : 0;
+            const itemId = checkoutItems.length > 0 ? checkoutItems[0].id : 0;
             const fullAddress = `${deliveryAddress}, ${city}, ${pincode}`;
 
             const res = await fetch('http://localhost/HertiX/admin/public/api/calculate_delivery.php', {
@@ -239,33 +253,14 @@ const Checkout = () => {
     const totalPayable = totalRent - totalDiscount + depositAmount + deliveryCharge;
 
     const validatePaymentForm = () => {
-        // Contact & Delivery Validation
+        // Contact Validation
         if (!phone || phone.length < 10) {
             toast.error("Please enter a valid 10-digit phone number.");
             return false;
         }
-
-        if (deliveryMethod === 'pickup') {
-            if (!pickupStartTime || !pickupEndTime) {
-                toast.error("Please select both Pickup Start and End times.");
-                return false;
-            }
-        }
-
-        if (deliveryMethod === 'delivery') {
-            if (!deliveryAddress || !city || !pincode || pincode.length < 6) {
-                toast.error("Please fill in complete delivery address.");
-                return false;
-            }
-            if (deliveryFee === 0 && deliveryDistance === 0) {
-                toast.error("Please calculate delivery fee.");
-                return false;
-            }
-        }
         return true;
     };
 
-    const { user } = useAuth(); // Get user from context
 
     const handlePayment = async () => {
         if (!startDate || !endDate) {
@@ -298,7 +293,7 @@ const Checkout = () => {
 
             const payload = {
                 user_id: user.id,
-                cart: cart, // Pass full cart for Razorpay verification
+                cart: checkoutItems, // Pass full logic for Razorpay verification
                 start_date: startDate,
                 end_date: endDate,
                 duration: duration,
@@ -443,10 +438,10 @@ const Checkout = () => {
         }
     };
 
-    if (cart.length === 0) {
+    if (checkoutItems.length === 0) {
         return (
             <div style={{ maxWidth: '800px', margin: '40px auto', textAlign: 'center', padding: '40px' }}>
-                <h2>Your cart is empty</h2>
+                <h2>Your checkout is empty</h2>
                 <Link to="/browse" className="btn btn-primary" style={{ marginTop: '20px', display: 'inline-block' }}>Browse Items</Link>
             </div>
         );
@@ -559,152 +554,38 @@ const Checkout = () => {
                             </div>
                         )}
                     </section>
-                    {/* 3. Delivery Method */}
-                    <section style={{ background: 'white', padding: '25px', borderRadius: '12px', border: '1px solid #eef2f6', marginBottom: '25px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-                        <h3 style={{ marginTop: 0, marginBottom: '20px', fontSize: '1.2rem' }}>2. Delivery Method</h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-
-                            <label style={{
-                                padding: '15px', borderRadius: '10px', cursor: 'pointer',
-                                border: deliveryMethod === 'pickup' ? '2px solid #1a1a1a' : '1px solid #e2e8f0',
-                                background: deliveryMethod === 'pickup' ? '#f8fafc' : 'white',
-                                textAlign: 'center'
-                            }}>
-                                <input type="radio" name="delivery" value="pickup" checked={deliveryMethod === 'pickup'} onChange={() => handleDeliveryMethodChange('pickup')} style={{ display: 'none' }} />
-                                <div style={{ fontWeight: '600', color: '#334155' }}>Store Pickup</div>
-                                <div style={{ fontSize: '0.8rem', color: '#16a34a', marginTop: '5px' }}>FREE</div>
-
-                                {deliveryMethod === 'pickup' && (
-                                    <div style={{ marginTop: '15px', animation: 'fadeIn 0.3s', textAlign: 'left' }} onClick={(e) => e.stopPropagation()}>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#666', fontSize: '0.85rem' }}>
-                                            Preferred Pickup Slot <span style={{ color: 'red' }}>*</span>
-                                        </label>
-                                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                            <div style={{ flex: 1 }}>
-                                                <select
-                                                    value={pickupStartTime}
-                                                    onChange={(e) => setPickupStartTime(e.target.value)}
-                                                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc', fontFamily: 'inherit', background: 'white', fontSize: '0.9rem' }}
-                                                >
-                                                    <option value="">From</option>
-                                                    {["09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM", "06:00 PM", "07:00 PM"].map(time => (
-                                                        <option key={time} value={time}>{time}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <span style={{ color: '#666' }}>to</span>
-                                            <div style={{ flex: 1 }}>
-                                                <select
-                                                    value={pickupEndTime}
-                                                    onChange={(e) => setPickupEndTime(e.target.value)}
-                                                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ccc', fontFamily: 'inherit', background: 'white', fontSize: '0.9rem' }}
-                                                >
-                                                    <option value="">To</option>
-                                                    {["10:00 AM", "11:00 AM", "12:00 PM", "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM", "05:00 PM", "06:00 PM", "07:00 PM", "08:00 PM"].map(time => (
-                                                        <option key={time} value={time}>{time}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </label>
-
-                            <label style={{
-                                padding: '15px', borderRadius: '10px', cursor: 'pointer',
-                                border: deliveryMethod === 'delivery' ? '2px solid #1a1a1a' : '1px solid #e2e8f0',
-                                background: deliveryMethod === 'delivery' ? '#f8fafc' : 'white',
-                                textAlign: 'center'
-                            }}>
-                                <input type="radio" name="delivery" value="delivery" checked={deliveryMethod === 'delivery'} onChange={() => handleDeliveryMethodChange('delivery')} style={{ display: 'none' }} />
-                                <div style={{ fontWeight: '600', color: '#334155' }}>Home Delivery</div>
-                                <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '5px' }}>
-                                    {/* Show fee if calculated, else +Charges */}
-                                    {deliveryFee > 0 ? `₹${deliveryFee}` : 'Charges Apply'}
-                                </div>
-                            </label>
-
-                        </div>
-                    </section>
 
 
                     {/* 4. Contact & Details */}
                     <section style={{ background: 'white', padding: '25px', borderRadius: '12px', border: '1px solid #eef2f6', marginBottom: '25px', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-                        <h3 style={{ marginTop: 0, marginBottom: '20px', fontSize: '1.2rem' }}>3. Contact Details</h3>
+                        <h3 style={{ marginTop: 0, marginBottom: '20px', fontSize: '1.2rem' }}>2. Contact Details</h3>
 
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#666', fontSize: '0.9rem' }}>
-                                WhatsApp / Mobile Number <span style={{ color: 'red' }}>*</span>
-                            </label>
-                            <input
-                                type="tel"
-                                placeholder="Enter 10-digit number"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                                style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ccc', fontFamily: 'inherit', fontSize: '1rem' }}
-                            />
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '15px' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#666', fontSize: '0.9rem' }}>
+                                    WhatsApp / Phone <span style={{ color: 'red' }}>*</span>
+                                </label>
+                                <input
+                                    type="tel"
+                                    placeholder="10-digit number"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ccc', fontFamily: 'inherit', fontSize: '1rem' }}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#666', fontSize: '0.9rem' }}>
+                                    Email Address (for receipts)
+                                </label>
+                                <input
+                                    type="email"
+                                    disabled
+                                    value={user?.email || ''}
+                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #eee', background: '#f9f9f9', color: '#666', fontFamily: 'inherit', fontSize: '1rem', cursor: 'not-allowed' }}
+                                />
+                            </div>
                         </div>
 
-                        {deliveryMethod === 'delivery' && (
-                            <div style={{ animation: 'fadeIn 0.3s', marginTop: '20px', paddingTop: '20px', borderTop: '1px dashed #eee' }}>
-                                <h4 style={{ margin: '0 0 15px 0', fontSize: '1rem', color: '#444' }}>Delivery Address</h4>
-                                <div style={{ marginBottom: '15px' }}>
-                                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#666', fontSize: '0.9rem' }}>Full Address <span style={{ color: 'red' }}>*</span></label>
-                                    <textarea
-                                        placeholder="House No, Street, Landmark"
-                                        value={deliveryAddress}
-                                        onChange={(e) => setDeliveryAddress(e.target.value)}
-                                        rows="3"
-                                        style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ccc', fontFamily: 'inherit', resize: 'vertical' }}
-                                    />
-                                </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#666', fontSize: '0.9rem' }}>City <span style={{ color: 'red' }}>*</span></label>
-                                        <input
-                                            type="text"
-                                            placeholder="City"
-                                            value={city}
-                                            onChange={(e) => setCity(e.target.value)}
-                                            style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ccc', fontFamily: 'inherit' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#666', fontSize: '0.9rem' }}>Pincode <span style={{ color: 'red' }}>*</span></label>
-                                        <input
-                                            type="text"
-                                            placeholder="6-digit PIN"
-                                            value={pincode}
-                                            onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                            style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #ccc', fontFamily: 'inherit' }}
-                                        />
-                                    </div>
-                                </div>
-                                <div style={{ marginTop: '15px', textAlign: 'right' }}>
-                                    <button
-                                        type="button"
-                                        onClick={handleCalculateDelivery}
-                                        disabled={isCalculatingDelivery || !deliveryAddress || !city || !pincode}
-                                        style={{
-                                            padding: '8px 16px',
-                                            background: '#3b82f6',
-                                            color: 'white',
-                                            border: 'none',
-                                            borderRadius: '6px',
-                                            cursor: 'pointer',
-                                            opacity: (isCalculatingDelivery || !deliveryAddress || !city || !pincode) ? 0.7 : 1
-                                        }}
-                                    >
-                                        {isCalculatingDelivery ? 'Calculating...' : 'Calculate Delivery Fee'}
-                                    </button>
-                                </div>
-                                {deliveryFee > 0 && (
-                                    <div style={{ marginTop: '10px', fontSize: '0.9rem', color: '#16a34a', fontWeight: 'bold' }}>
-                                        Fee Calculated: ₹{deliveryFee} (Distance: {deliveryDistance} km)
-                                    </div>
-                                )}
-                            </div>
-                        )}
                     </section>
 
 
@@ -788,10 +669,10 @@ const Checkout = () => {
 
                         {/* Items List */}
                         <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '20px', paddingRight: '5px' }}>
-                            {cart.map(item => (
+                            {checkoutItems.map(item => (
                                 <div key={item.id} style={{ display: 'flex', gap: '15px', marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px dashed #cbd5e1' }}>
                                     <div style={{ width: '50px', height: '50px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
-                                        <img src={`http://localhost/HertiX/admin/public/uploads/${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://via.placeholder.com/50'} />
+                                        <img src={`http://localhost/HertiX/${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://via.placeholder.com/50'} />
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontSize: '0.9rem', fontWeight: '600', color: '#334155', marginBottom: '4px' }}>{item.name}</div>
@@ -810,7 +691,7 @@ const Checkout = () => {
                         {/* Price Breakdown */}
                         <div style={{ marginBottom: '20px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '0.9rem', color: '#64748b' }}>
-                                <span>Total Rent ({duration} days)</span>
+                                <span>Total Rent</span>
                                 <span>₹{totalRent}</span>
                             </div>
                             {totalDiscount > 0 && (
@@ -822,12 +703,6 @@ const Checkout = () => {
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '0.9rem', color: '#64748b' }}>
                                 <span>Security Deposit (Refundable)</span>
                                 <span>₹{depositAmount}</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '0.9rem', color: '#64748b' }}>
-                                <span>Delivery Charges</span>
-                                <span style={{ color: deliveryCharge === 0 ? '#16a34a' : 'inherit' }}>
-                                    {deliveryCharge === 0 ? 'FREE' : `₹${deliveryCharge}`}
-                                </span>
                             </div>
                         </div>
 
@@ -841,13 +716,13 @@ const Checkout = () => {
                         {/* Pay Button */}
                         <button
                             onClick={handlePayment}
-                            disabled={isProcessing || duration === 0 || (paymentMethod === 'upi' && !isUpiVerified)}
+                            disabled={isProcessing || duration === 0}
                             style={{
                                 width: '100%', padding: '16px',
-                                background: (isProcessing || duration === 0 || (paymentMethod === 'upi' && !isUpiVerified)) ? '#94a3b8' : '#1a1a1a',
+                                background: (isProcessing || duration === 0) ? '#94a3b8' : '#1a1a1a',
                                 color: 'white', border: 'none', borderRadius: '12px',
                                 fontSize: '1rem', fontWeight: 'bold',
-                                cursor: (isProcessing || duration === 0 || (paymentMethod === 'upi' && !isUpiVerified)) ? 'not-allowed' : 'pointer',
+                                cursor: (isProcessing || duration === 0) ? 'not-allowed' : 'pointer',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                                 transition: 'background 0.2s',
                                 boxShadow: '0 4px 12px rgba(0,0,0,0.1)'

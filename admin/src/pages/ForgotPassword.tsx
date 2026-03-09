@@ -1,8 +1,12 @@
 import { type FormEvent, useState } from 'react'
+import { useSearchParams, Link } from 'react-router-dom'
 
 type Step = 'email' | 'otp' | 'reset'
 
 const ForgotPassword = () => {
+  const [searchParams] = useSearchParams()
+  const roleParam = searchParams.get('role') // 'owner' or 'finder'
+
   const [step, setStep] = useState<Step>('email')
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
@@ -14,7 +18,6 @@ const ForgotPassword = () => {
   const [error, setError] = useState('')
 
   // Helper to call PHP API
-  // Using relative path assuming Vite proxies to localhost/HertiX/admin/public/api or direct URL
   const API_BASE = 'http://localhost/HertiX/admin/public/api';
 
   // Step 1: Send OTP
@@ -31,7 +34,6 @@ const ForgotPassword = () => {
       const data = await res.json()
 
       if (data.status === 'success') {
-        // success message is implicit by moving to next step
         setStep('otp')
       } else {
         setError(data.message)
@@ -102,7 +104,13 @@ const ForgotPassword = () => {
       const data = await res.json()
 
       if (data.status === 'success') {
-        window.location.href = 'http://localhost:3002/dashboard';
+        // Redirection logic based on role parameter
+        if (roleParam === 'finder') {
+          window.location.href = 'http://localhost:3001/login';
+        } else {
+          // Default to Shop Owner login if role is 'owner' or missing
+          window.location.href = '/shop-owner/login';
+        }
       } else {
         setError(data.message)
       }
@@ -303,7 +311,11 @@ const ForgotPassword = () => {
         )}
 
         <div className="auth-links">
-          <a href="http://localhost:3001/login">Return to login</a>
+          {roleParam === 'finder' ? (
+            <a href="http://localhost:3001/login">Return to login</a>
+          ) : (
+            <Link to="/shop-owner/login">Return to login</Link>
+          )}
         </div>
       </div>
     </div>
@@ -311,4 +323,3 @@ const ForgotPassword = () => {
 }
 
 export default ForgotPassword
-

@@ -75,6 +75,21 @@ const ItemDetails = () => {
         toast.success("Item added to cart! Select dates at checkout.");
     };
 
+    const handleRentNow = () => {
+        if (!isAuthenticated) {
+            toast.error(t('login_required') || "Please login to continue");
+            return;
+        }
+
+        const directItem = {
+            ...item,
+            qty: quantity,
+            totalPrice: item.price_per_day * quantity
+        };
+
+        navigate('/checkout', { state: { directItem } });
+    };
+
     const maxQty = item.quantity !== undefined ? item.quantity : 5;
 
     return (
@@ -309,7 +324,7 @@ const ItemDetails = () => {
                         <div style={{ marginBottom: '20px' }}>
                             <p style={{ fontWeight: 'bold', marginBottom: '10px' }}>Availability: <span style={{ color: item.quantity > 0 ? '#15803d' : '#ef4444' }}>{item.quantity > 0 ? `${item.quantity} in stock` : 'Out of Stock'}</span></p>
 
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr 1fr', gap: '15px', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: '#f8f9fa', padding: '8px 15px', borderRadius: '30px', border: '1px solid #eee' }}>
                                     <button
                                         onClick={() => setQuantity(q => Math.max(1, q - 1))}
@@ -330,7 +345,30 @@ const ItemDetails = () => {
                                     onClick={handleAddToCart}
                                     disabled={item.quantity === 0}
                                     style={{
-                                        flex: 1,
+                                        padding: '16px 20px',
+                                        background: item.quantity > 0 ? 'white' : '#ccc',
+                                        color: '#1a1a1a',
+                                        border: item.quantity > 0 ? '2px solid #1a1a1a' : 'none',
+                                        borderRadius: '30px',
+                                        fontWeight: 'bold',
+                                        cursor: item.quantity > 0 ? 'pointer' : 'not-allowed',
+                                        fontSize: '1rem',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '8px',
+                                        transition: 'all 0.2s'
+                                    }}
+                                    onMouseOver={(e) => { if (item.quantity > 0) e.currentTarget.style.background = '#f8f9fa'; }}
+                                    onMouseOut={(e) => { if (item.quantity > 0) e.currentTarget.style.background = 'white'; }}
+                                >
+                                    <FaShoppingCart /> Add to Cart
+                                </button>
+
+                                <button
+                                    onClick={handleRentNow}
+                                    disabled={item.quantity === 0}
+                                    style={{
                                         padding: '16px 30px',
                                         background: item.quantity > 0 ? '#1a1a1a' : '#ccc',
                                         color: 'white',
@@ -340,16 +378,16 @@ const ItemDetails = () => {
                                         cursor: item.quantity > 0 ? 'pointer' : 'not-allowed',
                                         fontSize: '1.1rem',
                                         display: 'flex',
-                                        flexDirection: 'column',
                                         alignItems: 'center',
                                         justifyContent: 'center',
-                                        gap: '2px',
-                                        transition: 'transform 0.2s'
+                                        gap: '10px',
+                                        transition: 'transform 0.2s',
+                                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                                     }}
+                                    onMouseOver={(e) => { if (item.quantity > 0) e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                                    onMouseOut={(e) => { if (item.quantity > 0) e.currentTarget.style.transform = 'translateY(0)'; }}
                                 >
-                                    <span style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <FaShoppingCart /> Add to Cart
-                                    </span>
+                                    <FaArrowLeft style={{ transform: 'rotate(180deg)' }} /> Rent Now
                                 </button>
                             </div>
                         </div>

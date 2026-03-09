@@ -256,7 +256,22 @@ const PublicNavbar = () => {
                                     onClick={() => setShowProfileMenu(!showProfileMenu)}
                                     style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
                                 >
-                                    <FaUserCircle style={{ fontSize: '1.5rem', color: '#1a1a1a' }} />
+                                    {user.profile_image ? (
+                                        <img
+                                            src={user.profile_image}
+                                            alt=""
+                                            style={{
+                                                width: '32px',
+                                                height: '32px',
+                                                borderRadius: '50%',
+                                                objectFit: 'cover',
+                                                border: '2px solid #f1f5f9',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                                            }}
+                                        />
+                                    ) : (
+                                        <FaUserCircle style={{ fontSize: '1.5rem', color: '#1a1a1a' }} />
+                                    )}
                                     <span style={{ fontWeight: '600', color: '#1a1a1a' }}>{user.name}</span>
                                 </div>
 
@@ -281,16 +296,6 @@ const PublicNavbar = () => {
                                             My Profile
                                         </Link>
 
-                                        {/* My Shop link for Shop Owners */}
-                                        {user.role === 'Shop Owner' && (
-                                            <Link
-                                                to={`/shop/${user.id}`}
-                                                style={{ display: 'block', padding: '10px 15px', textDecoration: 'none', color: '#333', borderBottom: '1px solid #f1f5f9' }}
-                                                onClick={() => setShowProfileMenu(false)}
-                                            >
-                                                My Shop
-                                            </Link>
-                                        )}
                                         <div
                                             onClick={() => { logout(); setShowProfileMenu(false); }}
                                             style={{ padding: '10px 15px', cursor: 'pointer', color: '#ef4444', fontWeight: '500' }}
@@ -323,7 +328,7 @@ const PublicNavbar = () => {
                                 }}>
                                     Login
                                 </Link>
-                                <a href="http://localhost:3001/register/finder" style={{
+                                <a href="http://localhost:3002/register/finder" style={{
                                     padding: '8px 20px',
                                     background: '#1a1a1a',
                                     borderRadius: '20px',

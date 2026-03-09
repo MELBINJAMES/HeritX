@@ -46,7 +46,7 @@ if ($email === 'admin@heritx.com') {
 }
 
 // Check if user exists
-$stmt = $conn->prepare("SELECT id, name, email, role FROM users WHERE email = ?");
+$stmt = $conn->prepare("SELECT id, name, email, phone, address, location, gender, dob, bio, profile_image, role FROM users WHERE email = ?");
 $stmt->bind_param("s", $email);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -54,6 +54,20 @@ $result = $stmt->get_result();
 if ($result->num_rows > 0) {
     // User exists, log them in
     $user = $result->fetch_assoc();
+
+    // Role Validation
+    $required_role = $data->required_role ?? null;
+    if ($required_role) {
+        if ($required_role === 'Finder' && ($user['role'] === 'Shop Owner' || $user['role'] === 'admin')) {
+            echo json_encode(["status" => "error", "message" => "This email is registered as a Shop Owner. Please use another email."]);
+            exit();
+        }
+        if ($required_role === 'Shop Owner' && $user['role'] === 'Finder') {
+            echo json_encode(["status" => "error", "message" => "This email is registered as a Renter. Please use another email."]);
+            exit();
+        }
+    }
+
     echo json_encode([
         "status" => "success",
         "message" => "Login successful",

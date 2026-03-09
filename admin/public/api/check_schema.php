@@ -1,11 +1,7 @@
 <?php
-include 'c:\xampp\htdocs\HertiX\admin\public\api\db.php';
-$result = $conn->query("DESCRIBE items");
-if ($result) {
-    while($row = $result->fetch_assoc()) {
-        print_r($row);
-    }
-} else {
-    echo "Error: " . $conn->error;
-}
+include 'db.php';
+$result = $conn->query("DESCRIBE users");
+$cols = [];
+while($row = $result->fetch_assoc()) $cols[] = $row['Field'];
+echo implode(',', $cols);
 ?>

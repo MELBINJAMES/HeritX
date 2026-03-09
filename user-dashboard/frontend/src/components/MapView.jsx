@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, LayersControl } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents, LayersControl, Polyline } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import { MdMyLocation } from 'react-icons/md';
+import { FaLocationArrow } from 'react-icons/fa';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -13,24 +14,25 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({ iconUrl: markerIcon, iconRetinaUrl: markerIcon2x, shadowUrl: markerShadow });
 
-// High-end custom SVG-like pin for Shops
-const createCustomIcon = (bgColor, textColor, iconEmoji) => {
+const createCustomIcon = (bgColor, textColor, iconEmoji, extraClass = '') => {
     return new L.divIcon({
-        className: 'custom-div-icon',
+        className: `custom-div-icon ${extraClass}`,
         html: `
-            <div style="background-color: ${bgColor}; width: 34px; height: 34px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 2px solid white;">
-                <span style="transform: rotate(45deg); font-size: 16px; color: ${textColor}; line-height: 1; display: block;">${iconEmoji}</span>
+            <div class="pin-wrapper" style="width: 50px; height: 60px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;">
+                <div class="pin-main" style="background-color: ${bgColor}; width: 34px; height: 34px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.3); border: 2px solid white; margin-bottom: 2px;">
+                    <span style="transform: rotate(45deg); font-size: 16px; color: ${textColor}; line-height: 1; display: block;">${iconEmoji}</span>
+                </div>
+                <div class="pin-shadow" style="width: 10px; height: 4px; background: rgba(0,0,0,0.2); border-radius: 50%; filter: blur(1px);"></div>
             </div>
-            <div style="width: 10px; height: 4px; background: rgba(0,0,0,0.2); border-radius: 50%; margin: 4px auto 0 auto; filter: blur(1px);"></div>
         `,
-        iconSize: [34, 45],
-        iconAnchor: [17, 45],
-        popupAnchor: [0, -42]
+        iconSize: [50, 60],
+        iconAnchor: [25, 52],
+        popupAnchor: [0, -50]
     });
 };
 
 const nearbyIcon = createCustomIcon('#1e293b', '#fff', '🏷️');
-const userIcon = createCustomIcon('#3b82f6', '#fff', '⭐');
+const userIcon = createCustomIcon('#3b82f6', '#fff', '⭐', 'user-pulse');
 
 // Sub-component: auto-fit bounds to show all markers
 const MapBoundsFitter = ({ userCoords, shopCoords }) => {
@@ -100,6 +102,68 @@ const MapBoundsFitter = ({ userCoords, shopCoords }) => {
     return null;
 };
 
+// Sub-component: Routing Path Drawer
+const RoutingPath = ({ userCoords, destCoords, onRouteFound }) => {
+    const map = useMap();
+    const [path, setPath] = useState(null);
+    const [routeInfo, setRouteInfo] = useState(null);
+
+    useEffect(() => {
+        if (!userCoords || !destCoords) {
+            setPath(null);
+            setRouteInfo(null);
+            return;
+        }
+
+        const url = `https://router.project-osrm.org/route/v1/driving/${userCoords[1]},${userCoords[0]};${destCoords.lng},${destCoords.lat}?overview=full&geometries=geojson`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                if (data.routes && data.routes.length > 0) {
+                    const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                    setPath(coords);
+                    const info = {
+                        distance: (data.routes[0].distance / 1000).toFixed(1),
+                        duration: Math.round(data.routes[0].duration / 60)
+                    };
+                    setRouteInfo(info);
+                    if (onRouteFound) onRouteFound(info);
+
+                    const bounds = L.latLngBounds(coords);
+                    map.fitBounds(bounds, { padding: [80, 80], animate: true });
+                }
+            })
+            .catch(err => console.error("Routing error:", err));
+    }, [userCoords, destCoords, map]);
+
+    if (!path) return null;
+
+    return (
+        <>
+            <Polyline
+                positions={path}
+                pathOptions={{ color: '#3b82f6', weight: 6, opacity: 0.8, lineCap: 'round', lineJoin: 'round' }}
+            />
+            {routeInfo && (
+                <div className="leaflet-bottom leaflet-left" style={{ marginBottom: '30px', marginLeft: '10px' }}>
+                    <div className="leaflet-control" style={{
+                        background: 'white', padding: '10px 15px', borderRadius: '12px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)', border: '2px solid #3b82f6',
+                        animation: 'fadeInUp 0.3s ease-out'
+                    }}>
+                        <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '0.9rem' }}>🚗 Route Details</div>
+                        <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>
+                            Distance: <span style={{ color: '#3b82f6', fontWeight: 600 }}>{routeInfo.distance} km</span><br />
+                            Est. Time: <span style={{ color: '#3b82f6', fontWeight: 600 }}>{routeInfo.duration} mins</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+};
+
 // Sub-component: Locate Me Button
 const LocateControl = () => {
     const map = useMapEvents({
@@ -124,10 +188,10 @@ const LocateControl = () => {
                     title="Find My Location"
                     style={{
                         width: '34px', height: '34px', background: 'white', border: 'none', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b', fontSize: '1.2rem'
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b', fontSize: '1.1rem'
                     }}
                 >
-                    <MdMyLocation />
+                    <FaLocationArrow />
                 </button>
             </div>
         </div>
@@ -147,6 +211,7 @@ const LocateControl = () => {
 const MapView = ({ userCity, userLat, userLng, singleShop, height = '420px' }) => {
     const [shops, setShops] = useState([]);
     const [center, setCenter] = useState([10.8505, 76.2711]); // Default: Kerala center
+    const [selectedShopForRoute, setSelectedShopForRoute] = useState(null);
     const navigate = useNavigate();
 
     // ── Determine initial/updated map center fallback ─────────────────────────
@@ -198,11 +263,26 @@ const MapView = ({ userCity, userLat, userLng, singleShop, height = '420px' }) =
                 .custom-div-icon {
                     background: none;
                     border: none;
-                    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                 }
-                .custom-div-icon:hover {
-                    transform: scale(1.1) translateY(-5px) !important;
+                .pin-main {
+                    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                }
+                .custom-div-icon:hover .pin-main {
+                    transform: rotate(-45deg) scale(1.2) translateY(-5px) !important;
                     z-index: 1000 !important;
+                }
+                @keyframes pin-pulse {
+                    0% { transform: rotate(-45deg) scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+                    70% { transform: rotate(-45deg) scale(1.05); box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+                    100% { transform: rotate(-45deg) scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+                }
+                .user-pulse .pin-main {
+                    animation: pin-pulse 2s infinite;
+                    border: 2px solid #fff;
+                }
+                @keyframes fadeInUp {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
                 }
                 .leaflet-container {
                     z-index: 1 !important;
@@ -246,6 +326,14 @@ const MapView = ({ userCity, userLat, userLng, singleShop, height = '420px' }) =
                     userCoords={userLat && userLng ? [userLat, userLng] : (userCity ? center : null)}
                     shopCoords={shopsToRender.map(s => ({ lat: s.latitude, lng: s.longitude }))}
                 />
+
+                {/* Routing Path */}
+                {userLat && userLng && selectedShopForRoute && (
+                    <RoutingPath
+                        userCoords={[userLat, userLng]}
+                        destCoords={{ lat: selectedShopForRoute.latitude, lng: selectedShopForRoute.longitude }}
+                    />
+                )}
 
                 {/* User location marker */}
                 {userLat && userLng && (
@@ -291,19 +379,19 @@ const MapView = ({ userCity, userLat, userLng, singleShop, height = '420px' }) =
                                         {!singleShop && (
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                                 <button
-                                                    onClick={() => navigate(`/shop/${shop.shopId}`)}
+                                                    onClick={() => setSelectedShopForRoute(shop)}
                                                     style={{
                                                         width: '100%', padding: '10px 0',
-                                                        background: '#1e293b', color: 'white',
+                                                        background: '#3b82f6', color: 'white',
                                                         border: 'none', borderRadius: '6px',
                                                         cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem',
                                                         transition: 'background 0.2s',
                                                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
                                                     }}
-                                                    onMouseOver={(e) => e.target.style.background = '#0f172a'}
-                                                    onMouseOut={(e) => e.target.style.background = '#1e293b'}
+                                                    onMouseOver={(e) => e.target.style.background = '#2563eb'}
+                                                    onMouseOut={(e) => e.target.style.background = '#3b82f6'}
                                                 >
-                                                    Visit Storefront
+                                                    Show Route 🚗
                                                 </button>
                                                 <button
                                                     onClick={() => {
@@ -316,16 +404,16 @@ const MapView = ({ userCity, userLat, userLng, singleShop, height = '420px' }) =
                                                     }}
                                                     style={{
                                                         width: '100%', padding: '10px 0',
-                                                        background: '#e0e7ff', color: '#4338ca',
-                                                        border: '1px solid #c7d2fe', borderRadius: '6px',
+                                                        background: '#f1f5f9', color: '#475569',
+                                                        border: '1px solid #e2e8f0', borderRadius: '6px',
                                                         cursor: 'pointer', fontWeight: '600', fontSize: '0.85rem',
                                                         transition: 'background 0.2s',
                                                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
                                                     }}
-                                                    onMouseOver={(e) => e.target.style.background = '#c7d2fe'}
-                                                    onMouseOut={(e) => e.target.style.background = '#e0e7ff'}
+                                                    onMouseOver={(e) => e.target.style.background = '#e2e8f0'}
+                                                    onMouseOut={(e) => e.target.style.background = '#f1f5f9'}
                                                 >
-                                                    Get Directions 🗺️
+                                                    Google Maps 🗺️
                                                 </button>
                                             </div>
                                         )}

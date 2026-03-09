@@ -2,6 +2,7 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
+import LocationPrompt from '../components/LocationPrompt';
 
 // Wrapper for the Protected Dashboard Area
 const DashboardLayout = () => {
@@ -10,6 +11,7 @@ const DashboardLayout = () => {
             <Sidebar />
             <div className="main-content">
                 <Header />
+                <LocationPrompt />
                 <div className="content-area">
                     <Outlet />
                 </div>

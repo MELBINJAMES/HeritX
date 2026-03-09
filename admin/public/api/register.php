@@ -83,7 +83,7 @@ if ($result->num_rows > 0) {
     $is_approved = ($role === 'Shop Owner') ? 0 : 1;
     $latVal  = $shopLat  !== null ? "'$shopLat'"  : 'NULL';
     $lngVal  = $shopLng  !== null ? "'$shopLng'"  : 'NULL';
-    $sql = "INSERT INTO $table (email, name, password, role, shop_address, shop_city, shop_pincode, shop_phone, shop_proof, latitude, longitude, is_approved) VALUES ('$email', '$fullName', '$password', '$role', '$shopAddress', '$shopCity', '$shopPincode', '$shopPhone', '$proofPath', $latVal, $lngVal, '$is_approved')";
+    $sql = "INSERT INTO $table (email, name, password, role, shop_address, shop_city, shop_pincode, shop_phone, shop_proof, lat, lng, is_approved) VALUES ('$email', '$fullName', '$password', '$role', '$shopAddress', '$shopCity', '$shopPincode', '$shopPhone', '$proofPath', $latVal, $lngVal, '$is_approved')";
     
     if ($conn->query($sql) === TRUE) {
         $msg = "Account created successfully!";

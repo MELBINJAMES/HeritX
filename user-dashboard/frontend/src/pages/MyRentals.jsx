@@ -58,7 +58,7 @@ const MyRentals = () => {
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                         <div style={{ width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', background: '#f1f5f9' }}>
                                             {rental.image_url ? (
-                                                <img src={`http://localhost/HertiX/admin/public/uploads/${rental.image_url}`} alt={rental.item_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                <img src={`http://localhost/HertiX/${rental.image_url}`} alt={rental.item_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                             ) : (
                                                 <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#cbd5e1' }}>IMG</div>
                                             )}

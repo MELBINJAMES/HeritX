@@ -142,7 +142,7 @@ const PaymentSuccess = () => {
 
                 <p className="animate-text-2" style={{ fontSize: '1.2rem', color: '#64748b', marginBottom: '35px', lineHeight: '1.6', maxWidth: '500px', margin: '0 auto 35px auto' }}>
                     {contactInfo?.deliveryMethod === 'pickup'
-                        ? `Thank you for your order. Please pick up your items during your selected slot.`
+                        ? `Thank you for your order. You can now pick up your items from our store.`
                         : (message || `Thank you for your purchase. We are processing your selected items.`)
                     }
                     <br /><strong style={{ color: '#0f172a', display: 'inline-block', marginTop: '10px' }}>Order ID(s): {orderIds?.join(', ')}</strong>

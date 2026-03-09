@@ -19,7 +19,10 @@ const Login = ({ role }: LoginProps) => {
         const res = await fetch('http://localhost/HertiX/admin/public/api/google_login.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: tokenResponse.access_token }),
+          body: JSON.stringify({
+            token: tokenResponse.access_token,
+            required_role: role
+          }),
         })
         const data = await res.json()
 
@@ -64,7 +67,7 @@ const Login = ({ role }: LoginProps) => {
       const res = await fetch('http://localhost/HertiX/admin/public/api/login.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, required_role: role }),
       })
       const data = await res.json()
 
