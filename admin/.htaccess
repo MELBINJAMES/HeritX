@@ -4,12 +4,9 @@
   
   # Stop rewriting if requested path starts with dist/ to avoid infinite loops
   RewriteRule ^dist/ - [L]
-  
-  # Serve physical files from dist/ if they exist
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{DOCUMENT_ROOT}/HertiX/admin/dist/$1 -f
-  RewriteRule ^(.*)$ dist/$1 [L]
+
+  # For Vite assets (which are placed in dist/assets), route them directly
+  RewriteRule ^(assets/.*|vite\.svg)$ dist/$1 [L]
   
   # Serve non-existent paths via dist/index.html (SPA routing)
   RewriteCond %{REQUEST_FILENAME} !-f
