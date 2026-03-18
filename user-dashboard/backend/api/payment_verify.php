@@ -152,7 +152,7 @@ if ($generated_signature === $razorpay_signature) {
                 $updateWallet = $conn->query("UPDATE users SET wallet_balance = wallet_balance + $creditAmount WHERE id = $ownerId");
                 if (!$updateWallet) throw new Exception("Failed to credit shop owner: " . $conn->error);
 
-                $stmtTrans = $conn->prepare("INSERT INTO payments (user_id, amount, payment_type, status, transaction_date) VALUES (?, ?, 'credit_revenue', 'completed', NOW())");
+                $stmtTrans = $conn->prepare("INSERT INTO payments (user_id, amount, payment_type, status, transaction_date) VALUES (?, ?, 'credit_revenue', 'paid', NOW())");
                 $stmtTrans->bind_param("id", $ownerId, $creditAmount);
                 $stmtTrans->execute();
                 $stmtTrans->close();
