@@ -1,0 +1,388 @@
+--- EMAIL SENT [2026-02-01 16:27:31] ---
+To: melbinjames0011@gmail.com
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear Ajas Rentas,
+
+Your shop registration has been approved on 2026-02-01 16:27:29. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+
+--- EMAIL SENT [2026-02-01 16:44:08] ---
+To: melbinjames267@gmail.com
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear Boutique,
+
+Your shop registration has been approved on 2026-02-01 16:44:06. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+
+--- FORGOT PASSWORD EMAIL [2026-02-02 05:26:13] ---
+To: melbinjames1212@gmail.com
+Subject: HertiX - Password Reset Code
+Code: 632795
+----------------------------------
+
+--- FORGOT PASSWORD EMAIL [2026-02-02 05:29:14] ---
+To: melbinjames1212@gmail.com
+Status: SMTP Sent
+Code: 502702
+----------------------------------
+
+--- FORGOT PASSWORD EMAIL [2026-02-02 05:33:20] ---
+To: melbinjames267@gmail.com
+Status: SMTP Sent
+Code: 212788
+----------------------------------
+
+--- CUSTOM EMAIL SENT [2026-02-03 14:02:01] ---
+To: melbinjames267@gmail.com
+Subject: Important: Regarding your HeritX Shop
+Message:
+..
+--------------------------------------
+
+--- EMAIL SENT [2026-02-04 07:19:20] ---
+To: melbinjames2028@mca.ajce.in
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear Dev rentals,
+
+Your shop registration has been approved on 2026-02-04 07:19:18. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+
+--- EMAIL SENT [2026-02-23 05:43:32] ---
+To: shop@gmail.com
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear kudu stores ,
+
+Your shop registration has been approved on 2026-02-23 05:43:29. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+
+--- EMAIL SENT [2026-03-09 06:56:36] ---
+To: new_owner_1772983443208@example.com
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear Test Shop 1772983442918,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-09 06:56:37] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-09 06:56:37] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- FORGOT PASSWORD EMAIL [2026-03-09 07:53:05] ---
+To: melbinjames267@gmail.com
+Status: SMTP Sent
+Code: 142622
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 07:08:18] ---
+To: owner_ile5h@gmail.com
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear Heritage Shop ile5h,
+
+Your shop registration has been approved on 2026-03-10 07:08:16. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 07:11:19] ---
+To: owner_ee1t3@gmail.com
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear Heritage Shop ee1t3,
+
+Your shop registration has been approved on 2026-03-10 07:11:17. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 07:12:26] ---
+To: owner_h6523@gmail.com
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear Heritage Shop h6523,
+
+Your shop registration has been approved on 2026-03-10 07:12:23. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 07:13:08] ---
+To: owner_nn2ep@gmail.com
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear Heritage Shop nn2ep,
+
+Your shop registration has been approved on 2026-03-10 07:13:06. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 07:14:09] ---
+To: owner_kz28q@gmail.com
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear Heritage Shop kz28q,
+
+Your shop registration has been approved on 2026-03-10 07:14:07. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 07:15:08] ---
+To: owner_hi4sa@gmail.com
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear Heritage Shop hi4sa,
+
+Your shop registration has been approved on 2026-03-10 07:15:06. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 07:18:56] ---
+To: owner_s19ir@gmail.com
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear Heritage Shop s19ir,
+
+Your shop registration has been approved on 2026-03-10 07:18:54. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 07:20:08] ---
+To: owner_q89hy@gmail.com
+Subject: Shop Registration Approved - HeritX
+Body:
+Dear Heritage Shop q89hy,
+
+Your shop registration has been approved on 2026-03-10 07:20:06. You can now log in to your dashboard.
+
+Welcome to HeritX!
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:18:08] ---
+To: owner_vkreo@gmail.com
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear Heritage Shop vkreo,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:18:10] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:18:17] ---
+To: owner_1773074949@test-auto.com
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear Selenium Shop 1773074949,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:18:19] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:18:24] ---
+To: owner_1773074902@test-auto.com
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear Selenium Shop 1773074902,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:18:26] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:18:39] ---
+To: owner_1773074836@test-auto.com
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear Selenium Shop 1773074836,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:18:40] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:18:41] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:18:46] ---
+To: owner_1773074503322@test-auto.com
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear Selenium Shop 1773074503322,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:19:00] ---
+To: owner_1773074469700@test-auto.com
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear Selenium Shop 1773074469700,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:19:02] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:19:02] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:19:20] ---
+To: owner_1773074086271@test-auto.com
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear Selenium Shop 1773074086271,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:19:20] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:19:21] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:19:22] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:19:29] ---
+To: owner_1773074025686@test-auto.com
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear Selenium Shop 1773074025686,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:19:36] ---
+To: owner_1773073721185@test-auto.com
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear Selenium Shop 1773073721185,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:19:53] ---
+To: owner_1773073394453@test-auto.com
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear Selenium Shop 1773073394453,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:20:01] ---
+To: owner_1773072533686@test-auto.com
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear Selenium Shop 1773072533686,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
+--- EMAIL SENT [2026-03-10 17:20:03] ---
+To: 
+Subject: Shop Registration Rejected - HeritX
+Body:
+Dear ,
+
+Your shop registration request has been rejected. Please contact support for further details.
+----------------------------------
+
