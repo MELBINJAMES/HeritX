@@ -81,15 +81,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $status = 'confirmed';
 
             // Using delivery_fee column instead of delivery_charge
-            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, quantity, start_date, end_date, total_price, total_paid, status, delivery_method, delivery_fee, delivery_distance, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?)");
+            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, quantity, start_date, end_date, total_price, total_paid, total_amount, status, delivery_method, delivery_fee, delivery_distance, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?)");
             
             if (!$stmt) {
                 throw new Exception("Prepare failed: " . $conn->error);
             }
 
-            // Types: iiissddssddssssss (17 types for 17 variables)
+            // Types: iiissdddssddssssss (18 types for 18 variables)
             $qty = intval($item['qty']);
-            $stmt->bind_param("iiissddssddssssss", $userId, $item['id'], $qty, $startDate, $endDate, $itemTotal, $totalAmount, $status, $data['delivery_method'], $feePerItem, $totalDistance, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod); 
+            $stmt->bind_param("iiissdddssddssssss", $userId, $item['id'], $qty, $startDate, $endDate, $itemTotal, $totalAmount, $totalAmount, $status, $data['delivery_method'], $feePerItem, $totalDistance, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod); 
             
             if (!$stmt->execute()) {
                  throw new Exception("Execute failed: " . $stmt->error);
