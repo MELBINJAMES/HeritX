@@ -1,5 +1,6 @@
 <?php
-$conn = new mysqli('127.0.0.1', 'root', '', 'Heritx');
+require_once 'public/api/db.php';
+
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }

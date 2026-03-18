@@ -254,7 +254,7 @@ const ShopProfile = () => {
                                 >
                                     <Link to={`/item/${item.id}`} style={{ position: 'relative', display: 'block', height: '220px' }}>
                                         <img
-                                            src={`/${item.image_url}`}
+                                            src={`/HertiX/${item.image_url}`}
                                             alt={item.name}
                                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                             onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/400?text=No+Image'; }}

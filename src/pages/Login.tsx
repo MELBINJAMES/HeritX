@@ -6,10 +6,10 @@ type LoginProps = {
 
 const Login = ({ role }: LoginProps) => {
   useEffect(() => {
-    if (role === 'Shop Owner') {
-      window.location.href = 'http://localhost:3002/admin/dashboard';
-    } else {
-      window.location.href = 'http://localhost:3001/login';
+    if (role === 'Finder') {
+      window.location.href = '/HertiX/';
+    } else if (role === 'Shop Owner') {
+      window.location.href = '/HertiX/admin/';
     }
   }, [role]);
 

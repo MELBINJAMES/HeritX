@@ -7,18 +7,26 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('finder_user');
+        // Try unified key first (shared with admin app), then fallback to legacy key
+        const storedUser = localStorage.getItem('hertix_user') || localStorage.getItem('finder_user');
         if (storedUser) {
             try {
                 const parsedUser = JSON.parse(storedUser);
                 if (parsedUser && parsedUser.id) {
                     setUser(parsedUser);
+                    // Migrate legacy key to unified key if needed
+                    if (!localStorage.getItem('hertix_user')) {
+                        localStorage.setItem('hertix_user', storedUser);
+                        localStorage.removeItem('finder_user');
+                    }
                 } else {
                     localStorage.removeItem('finder_user');
+                    localStorage.removeItem('hertix_user');
                 }
             } catch (err) {
                 console.error('Failed to parse user session', err);
                 localStorage.removeItem('finder_user');
+                localStorage.removeItem('hertix_user');
             }
         }
         setLoading(false);
@@ -26,21 +34,24 @@ export const AuthProvider = ({ children }) => {
 
     const login = (userData) => {
         setUser(userData);
-        localStorage.setItem('finder_user', JSON.stringify(userData));
+        // Write to unified key so both apps share the session
+        localStorage.setItem('hertix_user', JSON.stringify(userData));
+        localStorage.removeItem('finder_user'); // remove legacy key
     };
 
     const updateUser = (newData) => {
         setUser(prev => {
             const updated = { ...prev, ...newData };
-            localStorage.setItem('finder_user', JSON.stringify(updated));
+            localStorage.setItem('hertix_user', JSON.stringify(updated));
             return updated;
         });
     };
 
     const logout = () => {
         setUser(null);
+        localStorage.removeItem('hertix_user');
         localStorage.removeItem('finder_user');
-        window.location.href = '/'; // Force reload/redirect to clear state
+        window.location.href = '/HertiX/';
     };
 
     return (

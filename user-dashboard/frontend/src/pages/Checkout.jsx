@@ -30,7 +30,7 @@ const Checkout = () => {
         const availability = {};
         for (const item of checkoutItems) {
             try {
-                const API_URL = 'http://localhost/HertiX/user-dashboard/backend/api/items.php';
+                const API_URL = '/HertiX/user-dashboard/backend/api/items.php';
                 const res = await fetch(`${API_URL}?action=availability&id=${item.id}`);
                 const data = await res.json();
                 if (data.status === 'success') {
@@ -223,7 +223,7 @@ const Checkout = () => {
             const itemId = checkoutItems.length > 0 ? checkoutItems[0].id : 0;
             const fullAddress = `${deliveryAddress}, ${city}, ${pincode}`;
 
-            const res = await fetch('http://localhost/HertiX/admin/public/api/calculate_delivery.php', {
+            const res = await fetch('/HertiX/admin/public/api/calculate_delivery.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -315,7 +315,7 @@ const Checkout = () => {
 
             if (paymentMethod === 'cod' || paymentMethod === 'pickup') {
                 // Legacy Flow for Offline Payment
-                const response = await fetch('http://localhost/HertiX/user-dashboard/backend/api/rentals.php', {
+                const response = await fetch('/HertiX/user-dashboard/backend/api/rentals.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
@@ -352,7 +352,7 @@ const Checkout = () => {
             } else {
                 // RAZORPAY FLOW
                 // 1. Create Order
-                const orderRes = await fetch('http://localhost/HertiX/user-dashboard/backend/api/payment_create_order.php', {
+                const orderRes = await fetch('/HertiX/user-dashboard/backend/api/payment_create_order.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ amount: totalPayable })
@@ -380,7 +380,7 @@ const Checkout = () => {
                                 razorpay_signature: response.razorpay_signature
                             };
 
-                            const verifyRes = await fetch('http://localhost/HertiX/user-dashboard/backend/api/payment_verify.php', {
+                            const verifyRes = await fetch('/HertiX/user-dashboard/backend/api/payment_verify.php', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(verifyPayload)
@@ -672,7 +672,7 @@ const Checkout = () => {
                             {checkoutItems.map(item => (
                                 <div key={item.id} style={{ display: 'flex', gap: '15px', marginBottom: '15px', paddingBottom: '15px', borderBottom: '1px dashed #cbd5e1' }}>
                                     <div style={{ width: '50px', height: '50px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0 }}>
-                                        <img src={`http://localhost/HertiX/${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://via.placeholder.com/50'} />
+                                        <img src={`/HertiX/${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://via.placeholder.com/50'} />
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontSize: '0.9rem', fontWeight: '600', color: '#334155', marginBottom: '4px' }}>{item.name}</div>

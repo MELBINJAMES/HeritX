@@ -1,0 +1,13 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /HertiX/
+  
+  # Serve physical files from dist/ if they exist
+  RewriteCond %{DOCUMENT_ROOT}/HertiX/dist/$1 -f
+  RewriteRule ^(.*)$ dist/$1 [L]
+  
+  # Serve non-existent paths via dist/index.html (SPA routing)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . dist/index.html [L]
+</IfModule>

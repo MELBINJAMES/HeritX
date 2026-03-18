@@ -91,7 +91,7 @@ const AdminDashboard = () => {
         // We rely on the effect dependency to only call this when appropriate
         setLoading(true);
         try {
-            const API = 'http://localhost/HertiX/admin/public/api/admin_dashboard_data.php';
+            const API = '/HertiX/admin/public/api/admin_dashboard_data.php';
 
             if (activeTab === 'dashboard') {
                 const res = await fetch(`${API}?action=stats`);
@@ -159,7 +159,7 @@ const AdminDashboard = () => {
             <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#f8fafc', color: '#1e293b' }}>
                 <h2>Session Expired</h2>
                 <p style={{ marginBottom: '1rem', color: '#64748b' }}>Please log in to access the Admin Console.</p>
-                <button onClick={() => window.location.href = '/shop-owner/login'} style={{ padding: '0.75rem 1.5rem', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
+                <button onClick={() => window.location.href = '/HertiX/admin/shop-owner/login'} style={{ padding: '0.75rem 1.5rem', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
                     Go to Login
                 </button>
             </div>
@@ -182,7 +182,7 @@ const AdminDashboard = () => {
     const handleAction = async (action: string, id: number | null = null, payload: any = null) => {
         const executeAction = async () => {
             try {
-                await fetch('http://localhost/HertiX/admin/public/api/admin_dashboard_data.php', {
+                await fetch('/HertiX/admin/public/api/admin_dashboard_data.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action, id, ...payload })
@@ -238,7 +238,7 @@ const AdminDashboard = () => {
             <aside className="admin-sidebar">
                 <div className="sidebar-header">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <a href="http://localhost:3001" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textDecoration: 'none', color: 'inherit' }}>
+                        <a href="/HertiX/" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textDecoration: 'none', color: 'inherit' }}>
                             <span style={{ fontSize: '1.4rem', fontWeight: 800, fontFamily: 'Georgia, serif', letterSpacing: '1px', lineHeight: 1.1, color: '#1e293b' }}>HeritX</span>
                             <span style={{ fontSize: '0.55rem', textTransform: 'uppercase', letterSpacing: '2.5px', color: '#64748b', fontWeight: 600 }}>Wear the Legacy</span>
                         </a>
@@ -268,7 +268,7 @@ const AdminDashboard = () => {
                 </nav>
 
                 <div className="logout-container">
-                    <button onClick={logout} className="logout-btn">
+                    <button onClick={() => { logout(); window.location.href = '/HertiX/'; }} className="logout-btn">
                         Sign Out
                     </button>
                 </div>
@@ -636,12 +636,12 @@ const AdminDashboard = () => {
                                 }}>
                                     {selectedOwner.shop_proof ? (
                                         selectedOwner.shop_proof.endsWith('.pdf') ? (
-                                            <a href={`http://localhost/HertiX/admin/public/${selectedOwner.shop_proof}`} target="_blank" style={{ color: '#2563eb' }}>
+                                            <a href={`/HertiX/admin/public/${selectedOwner.shop_proof}`} target="_blank" style={{ color: '#2563eb' }}>
                                                 📄 View PDF Document
                                             </a>
                                         ) : (
                                             <img
-                                                src={`http://localhost/HertiX/admin/public/${selectedOwner.shop_proof}`}
+                                                src={`/HertiX/admin/public/${selectedOwner.shop_proof}`}
                                                 alt="Proof"
                                                 style={{ maxWidth: '100%', maxHeight: '300px', borderRadius: '4px' }}
                                             />
@@ -746,7 +746,7 @@ const AllItemsTable = ({ data, onDelete }: any) => (
                 <tr key={i.id}>
                     <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <img src={`http://localhost:3001/HertiX/${i.image_url}`} style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} onError={(e) => e.currentTarget.src = 'https://via.placeholder.com/40'} />
+                            <img src={`/HertiX/user-dashboard/frontend/public/${i.image_url}`} style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover' }} onError={(e) => e.currentTarget.src = 'https://via.placeholder.com/40'} />
                             <span style={{ fontWeight: 600 }}>{i.name}</span>
                         </div>
                     </td>

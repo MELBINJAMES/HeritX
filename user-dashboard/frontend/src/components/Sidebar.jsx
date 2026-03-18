@@ -47,7 +47,7 @@ const Sidebar = () => {
                 borderBottom: '1px solid #f0f0f0'
             }}>
                 <button
-                    onClick={() => navigate('/')}
+                    onClick={() => window.location.href = '/HertiX/'}
                     title="Back to Home"
                     style={{
                         background: 'none',

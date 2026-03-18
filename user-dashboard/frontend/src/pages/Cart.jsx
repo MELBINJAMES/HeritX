@@ -45,7 +45,7 @@ const Cart = () => {
                                 <Link to={`/item/${item.id}`} style={{ display: 'block' }}>
                                     <div style={{ width: '100px', height: '100px', background: '#f8f9fa', borderRadius: '8px', overflow: 'hidden' }}>
                                         <img
-                                            src={`/${item.image_url}`}
+                                            src={`/HertiX/${item.image_url}`}
                                             alt={item.name}
                                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                             onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150'; }}

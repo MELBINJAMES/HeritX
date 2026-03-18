@@ -227,7 +227,7 @@ const ShopOwnerDashboard = () => {
 
   useEffect(() => {
     if (user?.id) {
-      fetch(`http://localhost/HertiX/admin/public/api/shop_get_settings.php?id=${user.id}`)
+      fetch(`/HertiX/admin/public/api/shop_get_settings.php?id=${user.id}`)
         .then(res => res.json())
         .then(data => {
           if (!data.error) setSettingsData(prev => ({ ...prev, ...data }));
@@ -278,7 +278,7 @@ const ShopOwnerDashboard = () => {
         formData.append('logo', logoFile);
       }
 
-      const res = await fetch('http://localhost/HertiX/admin/public/api/shop_update_settings.php', {
+      const res = await fetch('/HertiX/admin/public/api/shop_update_settings.php', {
         method: 'POST',
         body: formData
       });
@@ -301,7 +301,7 @@ const ShopOwnerDashboard = () => {
   const handleUpdateStatus = async (orderId: number, newStatus: string, damageNote: string = '', damageDeduction: number = 0) => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost/HertiX/admin/public/api/shop_update_order_status.php', {
+      const res = await fetch('/HertiX/admin/public/api/shop_update_order_status.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_id: orderId, status: newStatus, owner_id: user?.id, damage_note: damageNote, damage_deduction: damageDeduction })
@@ -352,7 +352,7 @@ const ShopOwnerDashboard = () => {
       setLoading(true);
       closePopup();
       try {
-        const res = await fetch('http://localhost/HertiX/admin/public/api/shop_delete_item.php', {
+        const res = await fetch('/HertiX/admin/public/api/shop_delete_item.php', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ item_id: itemId, owner_id: user?.id })
         });
@@ -398,7 +398,7 @@ const ShopOwnerDashboard = () => {
     formData.append('donts', newItem.donts);
     if (newItem.image) formData.append('image', newItem.image);
 
-    const endpoint = editItemId ? 'http://localhost/HertiX/admin/public/api/shop_update_item.php' : 'http://localhost/HertiX/admin/public/api/shop_add_item.php';
+    const endpoint = editItemId ? '/HertiX/admin/public/api/shop_update_item.php' : '/HertiX/admin/public/api/shop_add_item.php';
     if (editItemId) formData.append('item_id', editItemId.toString());
 
     try {
@@ -423,7 +423,7 @@ const ShopOwnerDashboard = () => {
   const fetchRealData = async (userId: string) => {
     try {
       setLoading(true);
-      const API_BASE = 'http://localhost/HertiX/admin/public/api';
+      const API_BASE = '/HertiX/admin/public/api';
       const [invRes, ordRes] = await Promise.all([
         fetch(`${API_BASE}/shop_inventory.php?user_id=${userId}`).catch(() => ({ json: () => [] })),
         fetch(`${API_BASE}/shop_orders.php?user_id=${userId}`).catch(() => ({ json: () => [] }))
@@ -447,7 +447,7 @@ const ShopOwnerDashboard = () => {
   };
 
   const stats = calculateStats();
-  const handleLogout = () => { logout(); window.location.href = 'http://localhost:3002'; };
+  const handleLogout = () => { logout(); window.location.href = '/HertiX/admin/'; };
 
   const SkeletonLoader = () => (
     <div className="main-content">
@@ -485,7 +485,7 @@ const ShopOwnerDashboard = () => {
                       <tr key={item.id}>
                         <td style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                           <div style={{ width: 40, height: 40, background: '#f1f5f9', borderRadius: 6, overflow: 'hidden' }}>
-                            <img src={item.image_url ? `http://localhost/HertiX/user-dashboard/frontend/public/${item.image_url}` : 'https://via.placeholder.com/40'} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={item.image_url ? `/HertiX/user-dashboard/frontend/public/${item.image_url}` : 'https://via.placeholder.com/40'} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           </div>
                           <span style={{ fontWeight: 500 }}>{item.name}</span>
                         </td>
@@ -604,7 +604,7 @@ const ShopOwnerDashboard = () => {
                       {modalStep === 'SAFE_REFUND' && (
                         <button className="btn btn-primary" style={{ width: '100%', background: '#10b981' }} onClick={async () => {
                           setLoading(true);
-                          const res = await fetch('http://localhost/HertiX/admin/public/api/shop_refund_deposit.php', {
+                          const res = await fetch('/HertiX/admin/public/api/shop_refund_deposit.php', {
                             method: 'POST', headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ order_id: selectedOrder.order_id, owner_id: user?.id, refund_amount: selectedOrder.deposit_amount, damage_type: 'No Damage', deduction: 0 })
                           });
@@ -636,7 +636,7 @@ const ShopOwnerDashboard = () => {
                           <p style={{ marginBottom: 15 }}>Deduction: Rs. {damageDeduction}. Refund: Rs. {selectedOrder.deposit_amount - damageDeduction}</p>
                           <button className="btn btn-primary" style={{ width: '100%', background: '#ef4444' }} onClick={async () => {
                             setLoading(true);
-                            const res = await fetch('http://localhost/HertiX/admin/public/api/shop_refund_deposit.php', {
+                            const res = await fetch('/HertiX/admin/public/api/shop_refund_deposit.php', {
                               method: 'POST', headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ order_id: selectedOrder.order_id, owner_id: user?.id, refund_amount: selectedOrder.deposit_amount - damageDeduction, damage_type: damageLabel, deduction: damageDeduction })
                             });

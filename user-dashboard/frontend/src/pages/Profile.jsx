@@ -70,7 +70,7 @@ const Profile = () => {
                 formData.append('profile_image', selectedFile);
             }
 
-            const response = await fetch('http://localhost/HertiX/user-dashboard/backend/api/profile.php', {
+            const response = await fetch('/HertiX/user-dashboard/backend/api/profile.php', {
                 method: 'POST',
                 body: formData
             });

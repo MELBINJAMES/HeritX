@@ -33,7 +33,7 @@ const Register = ({ defaultRole = 'Shop Owner', lockRole = false }: RegisterProp
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        const res = await fetch('http://localhost/HertiX/admin/public/api/google_login.php', {
+        const res = await fetch('/HertiX/admin/public/api/google_login.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ token: tokenResponse.access_token }),
@@ -43,7 +43,7 @@ const Register = ({ defaultRole = 'Shop Owner', lockRole = false }: RegisterProp
         if (data.status === 'success') {
           // Re-using same logic as Login.tsx
           if (role === 'Finder') {
-            window.location.href = 'http://localhost:3001/dashboard';
+            window.location.href = '/HertiX/';
           } else {
             navigate('/shop-owner/dashboard');
           }
@@ -131,7 +131,7 @@ const Register = ({ defaultRole = 'Shop Owner', lockRole = false }: RegisterProp
         formData.append('shop_city', userCity)   // Reusing column for general user city
       }
 
-      const res = await fetch('http://localhost/HertiX/admin/public/api/register.php', {
+      const res = await fetch('/HertiX/admin/public/api/register.php', {
         method: 'POST',
         body: formData,
       })
@@ -141,7 +141,7 @@ const Register = ({ defaultRole = 'Shop Owner', lockRole = false }: RegisterProp
         if (role === 'Shop Owner') {
           setShowPendingModal(true);
         } else {
-          navigate('/finder/login');
+          window.location.href = '/HertiX/admin/finder/login';
         }
       } else {
         setError(data.message)
@@ -301,7 +301,9 @@ const Register = ({ defaultRole = 'Shop Owner', lockRole = false }: RegisterProp
         border: '1px solid rgba(255,255,255,0.5)'
       }}>
         <div className="auth-card-header" style={{ marginBottom: '40px' }}>
-          <a href="http://localhost:3001" className="back-arrow" aria-label="Back to home">←</a>
+          <a href="/HertiX/" className="back-arrow" aria-label="Back to home">
+            ←
+          </a>
           <div className="brand" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <span style={{ fontSize: '2.4rem', fontWeight: 950, fontFamily: 'Georgia, serif', letterSpacing: '-0.5px', lineHeight: 1, color: '#0f172a' }}>HeritX</span>
             <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '5px', color: '#64748b', fontWeight: 800, marginTop: '6px' }}>Wear the Legacy</span>

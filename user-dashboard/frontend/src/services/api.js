@@ -1,5 +1,5 @@
-const API_BASE_URL = 'http://localhost/HertiX/user-dashboard/backend/api';
-const PAYMENTS_API_URL = 'http://localhost/HertiX/user-dashboard/payments/backend/payments.php';
+const API_BASE_URL = '/HertiX/user-dashboard/backend/api';
+const PAYMENTS_API_URL = '/HertiX/user-dashboard/payments/backend/payments.php';
 
 export const fetchItems = async (params = {}) => {
     try {
@@ -8,9 +8,11 @@ export const fetchItems = async (params = {}) => {
         if (params.city) queryParams.append('city', params.city);
         if (params.pincode) queryParams.append('pincode', params.pincode);
         if (params.id) queryParams.append('id', params.id);
+        const ts = new Date().getTime();
+        queryParams.append('_t', ts);
 
         const url = `${API_BASE_URL}/items.php${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
-        const response = await fetch(url);
+        const response = await fetch(url, { cache: 'no-store' });
         const data = await response.json();
 
         // Return data if it exists, otherwise return mocks

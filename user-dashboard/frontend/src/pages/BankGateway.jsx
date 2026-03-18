@@ -33,7 +33,7 @@ const BankGateway = () => {
         // Simulate network delay
         setTimeout(async () => {
             try {
-                const response = await fetch('http://localhost/HertiX/user-dashboard/backend/api/rentals.php', {
+                const response = await fetch('/HertiX/user-dashboard/backend/api/rentals.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(orderDetails)

@@ -2,6 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const BecomeOwner = () => {
+    React.useEffect(() => {
+        window.location.href = '/HertiX/admin/shop-owner/login';
+    }, []);
+
     return (
         <div style={{ padding: '60px 20px', textAlign: 'center', backgroundColor: '#fff' }}>
             <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -13,7 +17,7 @@ const BecomeOwner = () => {
                 </p>
 
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
-                    <a href="http://localhost:3002/shop-owner/login" style={{
+                    <a href="/HertiX/admin/shop-owner/login" style={{
                         padding: '15px 40px',
                         backgroundColor: '#1a1a1a',
                         color: 'white',
@@ -25,7 +29,7 @@ const BecomeOwner = () => {
                         Login as Owner
                     </a>
 
-                    <a href="http://localhost:3002/register/owner" style={{
+                    <a href="/HertiX/admin/register" style={{
                         padding: '15px 40px',
                         backgroundColor: 'white',
                         color: '#1a1a1a',

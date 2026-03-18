@@ -7,10 +7,10 @@ type RegisterProps = {
 
 const Register = ({ defaultRole = 'Shop Owner' }: RegisterProps) => {
   useEffect(() => {
-    if (defaultRole === 'Shop Owner') {
-      window.location.href = 'http://localhost:3002/register/owner';
-    } else {
-      window.location.href = 'http://localhost:3001/register/finder';
+    if (defaultRole === 'Finder') {
+      window.location.href = '/HertiX/admin/register';
+    } else if (defaultRole === 'Shop Owner') {
+      window.location.href = '/HertiX/admin/register';
     }
   }, [defaultRole]);
 

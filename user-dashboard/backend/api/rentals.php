@@ -26,7 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $paymentMethod = $data['payment_method'];
     $startDate = $data['start_date'];
     $endDate = $data['end_date'];
-    $totalAmount = $data['total_amount'];
+    // Handle both 'total_amount' and 'amount' keys for frontend compatibility
+    $totalAmount = isset($data['total_amount']) ? $data['total_amount'] : (isset($data['amount']) ? $data['amount'] : 0);
     $pickupTime = isset($data['pickup_time']) ? $data['pickup_time'] : null;
 
     // Suppress display errors to prevent JSON corruption
@@ -95,11 +96,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $stmt->close();
 
-            // Decrease quantity (LEGACY: Removed to support real-time availability calculation from rentals table)
-            // $updateItem = $conn->query("UPDATE items SET quantity = quantity - " . intval($item['qty']) . " WHERE id = " . intval($item['id']));
-            // if (!$updateItem) {
-            //     throw new Exception("Failed to update item stock: " . $conn->error);
-            // }
+            // Decrease quantity (Automatic Stock Management)
+            $orderedQty = intval($item['qty']);
+            $itemId = intval($item['id']);
+            $updateItem = $conn->query("UPDATE items SET quantity = quantity - $orderedQty WHERE id = $itemId AND quantity >= $orderedQty");
+            if ($conn->affected_rows === 0) {
+                // If we didn't update any row, it might be due to insufficient stock
+                $checkStock = $conn->query("SELECT quantity FROM items WHERE id = $itemId");
+                $currentStock = ($checkStock && $checkStock->num_rows > 0) ? $checkStock->fetch_assoc()['quantity'] : 0;
+                if ($currentStock < $orderedQty) {
+                    throw new Exception("Insufficient stock for item: " . ($item['name'] ?? $itemId));
+                }
+            }
 
             // Credit Shop Owner Logic
             // Fetch owner_id first
@@ -135,10 +143,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $resCustomer = $conn->query("SELECT name FROM users WHERE id = $userId");
                         $customerName = ($resCustomer && $resCustomer->num_rows > 0) ? $resCustomer->fetch_assoc()['name'] : 'A customer';
 
-                        require_once '../../../admin/public/api/vendor/autoload.php';
-                        include '../../../admin/public/api/config_notifications.php';
-                        
-                        $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+                        $vendorAutoload = __DIR__ . '/../../../admin/public/api/vendor/autoload.php';
+                        if (file_exists($vendorAutoload)) {
+                            require_once $vendorAutoload;
+                            include __DIR__ . '/../../../admin/public/api/config_notifications.php';
+                            
+                            $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
                         $mail->isSMTP();
                         $mail->Host       = 'smtp.gmail.com';
                         $mail->SMTPAuth   = true;
@@ -162,12 +172,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <tr><td style='padding:8px;color:#64748b'>Amount</td><td style='padding:8px;font-weight:600;color:#10b981'>Rs. " . number_format($itemTotal, 2) . "</td></tr>
                                     <tr style='background:#f8fafc'><td style='padding:8px;color:#64748b'>Rental Dates</td><td style='padding:8px'>$startDate to $endDate</td></tr>
                                 </table>
-                                <p style='margin-top:20px'>Log in to your <a href='http://localhost:3002/shop-owner/dashboard'>HeritX Dashboard</a> to manage this order.</p>
+                                <p style='margin-top:20px'>Log in to your <a href='http://localhost/HertiX/admin/shop-owner/dashboard'>HeritX Dashboard</a> to manage this order.</p>
                                 <hr style='border:none;border-top:1px solid #e2e8f0;margin:20px 0'>
                                 <p style='color:#94a3b8;font-size:0.8rem'>This is an automated notification from HeritX.</p>
                             </div>";
                         $mail->AltBody = "New order from $customerName for " . ($item['name'] ?? 'an item') . ". Amount: Rs. " . number_format($itemTotal, 2) . ". Login to your dashboard to manage it.";
                         $mail->send();
+                        } else {
+                            error_log("Email notification skipped: PHPMailer autoload not found at $vendorAutoload");
+                        }
                     }
                 } catch (\Exception $e) {
                     // Non-fatal — log but don't fail the order

@@ -540,67 +540,181 @@ body {
   margin-bottom: 24px;
 }
 
-/* Login Page Fixes for Modern Look */
+/* --- Minimalist Split with Flowing Waves (15/85) --- */
 .auth-page {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: #f1f5f9;
+  position: relative;
+  background-color: #ffffff;
+  overflow: hidden;
+  /* Clean 15% black sidebar, 85% white background */
+  background: linear-gradient(to right, 
+    #111111 0%, 
+    #111111 15%, 
+    #ffffff 15%, 
+    #ffffff 100%
+  );
 }
+
+/* Minimal Wave/Flow Design - Enhanced Visibility */
+.auth-page::before {
+  content: "";
+  position: absolute;
+  width: 150%;
+  height: 150%;
+  top: -25%;
+  left: -25%;
+  z-index: 1;
+  background: 
+    radial-gradient(circle at 30% 20%, rgba(0,0,0,0.04) 0%, transparent 40%),
+    radial-gradient(circle at 70% 80%, rgba(0,0,0,0.04) 0%, transparent 40%);
+  animation: flowOrbit 30s linear infinite;
+  pointer-events: none;
+}
+
+.auth-page::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 15%;
+  right: 0;
+  height: 45vh; /* Taller for more presence */
+  background: 
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23000000' fill-opacity='0.08' d='M0,224L48,213.3C96,203,192,181,288,186.7C384,192,480,224,576,218.7C672,213,768,171,864,149.3C960,128,1056,128,1152,149.3C1248,171,1344,213,1392,234.7L1440,256L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23000000' fill-opacity='0.04' d='M0,128L48,144C96,160,192,192,288,197.3C384,203,480,181,576,181.3C672,181,768,203,864,197.3C960,192,1056,160,1152,138.7C1248,117,1344,107,1392,101.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
+  background-size: 200% 100%;
+  background-repeat: repeat-x;
+  animation: waveFlow 25s linear infinite;
+  z-index: 1;
+  pointer-events: none;
+}
+
+@keyframes flowOrbit {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes waveFlow {
+  from { background-position: 0 100%, 0 100%; }
+  to { background-position: 200% 100%, -200% 100%; }
+}
+
+
 
 .auth-card {
-  background: white;
-  padding: 48px;
-  border-radius: 24px;
-  box-shadow: var(--shadow-md);
+  background: #ffffff;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
   width: 100%;
-  max-width: 440px;
+  max-width: 420px;
+  position: relative;
+  z-index: 10;
+  border: 1px solid #eee;
+  animation: fadeInDown 0.6s ease-out;
 }
 
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+
 .auth-title {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 2.2rem;
+  font-weight: 800;
   color: var(--primary);
   margin-bottom: 8px;
+  font-family: 'Georgia', serif;
+  letter-spacing: -0.5px;
 }
 
 .auth-subtitle {
   color: var(--text-muted);
-  margin-bottom: 32px;
+  margin-bottom: 40px;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.field label span {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 10px;
 }
 
 .field input {
-  padding: 12px;
-  border: 1px solid var(--border-light);
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: var(--radius-md);
   font-size: 1rem;
   width: 100%;
-  transition: border-color 0.2s;
+  transition: all 0.3s ease;
 }
 
 .field input:focus {
-  border-color: var(--accent);
+  background: white;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.1);
   outline: none;
-  ring: 2px solid rgba(245, 158, 11, 0.2);
 }
 
 .cta-button.primary {
-  background: var(--primary);
+  background: #1a1a1a;
   color: white;
   width: 100%;
-  padding: 14px;
+  padding: 16px;
   border-radius: var(--radius-md);
-  font-weight: 600;
+  font-weight: 700;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
-  margin-top: 16px;
+  font-size: 1.1rem;
+  margin-top: 24px;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
 }
 
 .cta-button.primary:hover {
-  background: #1e293b;
+  background: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
 }
+
+.google-button {
+  width: 100%;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  padding: 12px 16px !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  color: #1e293b !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+  margin: 10px 0 24px 0 !important;
+  box-shadow: none !important;
+  font-size: 0.95rem !important;
+  font-family: inherit !important;
+}
+
+.google-button:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+.google-icon-svg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 
 /* --- Login Page Missing Components --- */
 .auth-card-header {
@@ -621,27 +735,50 @@ body {
   color: var(--primary);
 }
 
-.google-button {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  background: white;
-  border: 1px solid var(--border-light);
-  padding: 12px;
-  border-radius: var(--radius-md);
-  font-weight: 500;
-  color: var(--text-main);
-  cursor: pointer;
-  transition: all 0.2s;
+.auth-card-wow h1 {
+  font-family: 'Georgia', serif;
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+  text-align: center;
+  letter-spacing: -0.5px;
+}
+
+.auth-form .field {
   margin-bottom: 24px;
 }
 
-.google-button:hover {
+.auth-form .field input {
+  padding: 14px 16px 14px 16px;
   background: #f8fafc;
-  border-color: #cbd5e1;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+.auth-form .field input:focus {
+  background: #ffffff;
+  border-color: #1a1a1a;
+  box-shadow: 0 0 0 4px rgba(26, 26, 26, 0.05);
+  transform: translateY(-1px);
+}
+
+.cta-button.primary.full {
+  background: #111111;
+  padding: 16px;
+  border-radius: 14px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+}
+
+.cta-button.primary.full:hover {
+  background: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
 
 .google-icon {
   font-weight: 700;

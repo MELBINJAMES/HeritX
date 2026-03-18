@@ -4,9 +4,12 @@ import { useAuth } from '../context/AuthContext';
 import { FaEnvelope, FaLock } from 'react-icons/fa';
 import { useGoogleLogin } from '@react-oauth/google';
 
+import '../styles/Login.css';
+
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
@@ -16,7 +19,7 @@ const Login = () => {
         onSuccess: async (tokenResponse) => {
             try {
                 // Send access token to backend for verification and login/registration
-                const res = await fetch('http://localhost/HertiX/admin/public/api/google_login.php', {
+                const res = await fetch('/HertiX/admin/public/api/google_login.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -49,7 +52,7 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost/HertiX/admin/public/api/login.php', {
+            const response = await fetch('/HertiX/admin/public/api/login.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password, required_role: 'Finder' }),
@@ -61,8 +64,8 @@ const Login = () => {
                 login(data.user);
 
                 // Role Based Redirect
-                if (data.user.role === 'admin') {
-                    window.location.href = 'http://localhost:3002/admin/dashboard';
+                if (data.user.role === 'admin' || data.user.role === 'Shop Owner') {
+                    window.location.href = '/HertiX/admin/';
                     return;
                 }
 
@@ -79,22 +82,9 @@ const Login = () => {
     };
 
     return (
-        <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            minHeight: '80vh',
-            background: '#f8fafc'
-        }}>
-            <div className="login-card" style={{
-                background: 'white',
-                padding: '40px',
-                borderRadius: '16px',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
-                width: '100%',
-                maxWidth: '400px'
-            }}>
-                <h2 style={{ textAlign: 'center', marginBottom: '25px', fontFamily: 'serif', fontSize: '2rem' }}>Welcome Back</h2>
+        <div className="user-auth-page">
+            <div className="login-card-wow">
+                <h2>Welcome Back</h2>
 
                 {error && <div style={{
                     padding: '12px',
@@ -108,77 +98,67 @@ const Login = () => {
 
                 <button
                     type="button"
+                    className="google-btn-wow"
                     onClick={() => googleLogin()}
-                    style={{
-                        width: '100%',
-                        padding: '12px',
-                        background: 'white',
-                        color: '#333',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '8px',
-                        fontWeight: '600',
-                        fontSize: '1rem',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '10px',
-                        marginBottom: '20px'
-                    }}
                 >
-                    <span style={{ fontWeight: 'bold', color: '#4285F4' }}>G</span>
+                    <span className="google-icon-svg">
+                        <svg width="18" height="18" viewBox="0 0 18 18">
+                            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                            <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.834.859-3.048.859-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+                            <path d="M3.964 10.706c-.18-.54-.282-1.117-.282-1.706 0-.589.102-1.166.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="#FBBC05"/>
+                            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962l3.007 2.332C4.672 5.164 6.656 3.58 9 3.58z" fill="#EA4335"/>
+                        </svg>
+                    </span>
                     <span>Continue with Google</span>
                 </button>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-                    <div style={{ height: '1px', background: '#e2e8f0', flex: 1 }}></div>
-                    <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>or sign in with email</span>
-                    <div style={{ height: '1px', background: '#e2e8f0', flex: 1 }}></div>
+                <div className="divider-wow">
+                    <span>or sign in with email</span>
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: '20px' }}>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Email</label>
-                        <div style={{ position: 'relative' }}>
-                            <FaEnvelope style={{ position: 'absolute', left: '12px', top: '12px', color: '#94a3b8' }} />
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 10px 10px 35px',
-                                    border: '1px solid #e2e8f0',
-                                    borderRadius: '8px',
-                                    outline: 'none',
-                                    fontSize: '1rem'
-                                }}
-                                required
-                            />
-                        </div>
+                    <div className="input-group-wow">
+                        <label className="input-label-wow">Email</label>
+                        <input
+                            type="email"
+                            className="input-field-wow"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="you@example.com"
+                            required
+                        />
                     </div>
 
-                    <div style={{ marginBottom: '25px' }}>
-                        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#475569' }}>Password</label>
+                    <div className="input-group-wow">
+                        <label className="input-label-wow">Password</label>
                         <div style={{ position: 'relative' }}>
-                            <FaLock style={{ position: 'absolute', left: '12px', top: '12px', color: '#94a3b8' }} />
                             <input
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
+                                className="input-field-wow"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 10px 10px 35px',
-                                    border: '1px solid #e2e8f0',
-                                    borderRadius: '8px',
-                                    outline: 'none',
-                                    fontSize: '1rem'
-                                }}
+                                placeholder="••••••••"
                                 required
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                style={{
+                                    position: 'absolute',
+                                    right: '12px',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    color: '#94a3b8'
+                                }}
+                            >
+                                {showPassword ? 'Hide' : 'Show'}
+                            </button>
                         </div>
-                        <div style={{ textAlign: 'right', marginTop: '8px' }}>
-                            <Link to="/forgot-password" style={{ color: '#1a1a1a', fontSize: '0.85rem', textDecoration: 'none', fontWeight: '500' }}>
+                        <div style={{ textAlign: 'right', marginTop: '10px' }}>
+                            <Link to="/forgot-password" style={{ color: '#1a1a1a', fontSize: '0.85rem', textDecoration: 'none', fontWeight: '600' }}>
                                 Forgot Password?
                             </Link>
                         </div>
@@ -187,25 +167,14 @@ const Login = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        style={{
-                            width: '100%',
-                            padding: '12px',
-                            background: '#1a1a1a',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '8px',
-                            fontWeight: '600',
-                            fontSize: '1rem',
-                            cursor: loading ? 'not-allowed' : 'pointer',
-                            opacity: loading ? 0.7 : 1
-                        }}
+                        className="signin-btn-wow"
                     >
                         {loading ? 'Signing in...' : 'Sign In'}
                     </button>
                 </form>
 
-                <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '0.9rem', color: '#64748b' }}>
-                    Don't have an account? <a href="http://localhost:3002/register/finder" style={{ color: '#1a1a1a', fontWeight: '600', textDecoration: 'none' }}>Sign Up</a>
+                <div style={{ marginTop: '25px', textAlign: 'center', fontSize: '0.9rem', color: '#64748b' }}>
+                    Don't have an account? <Link to="/signup" style={{ color: '#1a1a1a', fontWeight: '700', textDecoration: 'none' }}>Sign Up</Link>
                 </div>
             </div>
         </div>

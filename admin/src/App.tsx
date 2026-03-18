@@ -12,7 +12,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 const App = () => {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter basename="/HertiX/admin">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/shop-owner/login" element={<Login role="Shop Owner" />} />

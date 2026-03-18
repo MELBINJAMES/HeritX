@@ -168,13 +168,13 @@ const PaymentSuccess = () => {
                         {(paymentIds && contactInfo?.deliveryMethod !== 'pickup') && (
                             <>
                                 {paymentIds.rent && (
-                                    <a href={`http://localhost/HertiX/user-dashboard/backend/api/receipt.php?id=${paymentIds.rent}`} target="_blank" rel="noopener noreferrer"
+                                    <a href={`/HertiX/user-dashboard/backend/api/receipt.php?id=${paymentIds.rent}`} target="_blank" rel="noopener noreferrer"
                                         className="receipt-btn" style={{ background: '#f0fdf4', color: '#166534', border: '1px solid #bbf7d0' }}>
                                         <FaReceipt /> Rent Receipt
                                     </a>
                                 )}
                                 {paymentIds.deposit && (
-                                    <a href={`http://localhost/HertiX/user-dashboard/backend/api/receipt.php?id=${paymentIds.deposit}`} target="_blank" rel="noopener noreferrer"
+                                    <a href={`/HertiX/user-dashboard/backend/api/receipt.php?id=${paymentIds.deposit}`} target="_blank" rel="noopener noreferrer"
                                         className="receipt-btn" style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
                                         <FaReceipt /> Deposit Receipt
                                     </a>

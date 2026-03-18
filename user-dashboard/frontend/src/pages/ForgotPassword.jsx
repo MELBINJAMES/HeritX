@@ -21,7 +21,7 @@ const ForgotPassword = () => {
     const navigate = useNavigate();
 
     // API Base URL - reusing the Admin APIs which handle user tables too
-    const API_BASE = 'http://localhost/HertiX/admin/public/api';
+    const API_BASE = '/HertiX/admin/public/api';
 
     // Step 1: Send OTP
     const handleSendOtp = async (e) => {

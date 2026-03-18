@@ -893,3 +893,34 @@ Do not mix costume parts carelessly
 
 [2026-02-23 05:49:17] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../uploads/item_1771822157_flute.jpg
 [2026-02-23 05:49:17] Item inserted via Mysqli
+[2026-03-15 06:12:47] Request Received
+[2026-03-15 06:12:47] Array
+(
+    [owner_id] => 10
+    [name] => defrfrf h
+    [category] => Musical Instruments
+    [occasion] => Vishu
+    [item_condition] => Used
+    [quantity] => 3
+    [price] => 200
+    [deposit] => 250
+    [description] => eerbrbbhhfrnfrfnfthnfrfgrfnerfhyertfberfygrf
+    [dos] => 
+    [donts] => 
+)
+
+[2026-03-15 06:12:47] Array
+(
+    [image] => Array
+        (
+            [name] => 5.avif
+            [type] => image/avif
+            [tmp_name] => C:\xampp\tmp\php7589.tmp
+            [error] => 0
+            [size] => 97433
+        )
+
+)
+
+[2026-03-15 06:12:47] File uploaded to: C:\xampp\htdocs\HertiX\admin\public\api/../../../uploads/item_1773551567_5.avif
+[2026-03-15 06:12:48] Item inserted via Mysqli

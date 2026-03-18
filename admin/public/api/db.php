@@ -7,10 +7,12 @@ header("Content-Type: application/json; charset=UTF-8");
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
-$servername = "127.0.0.1";
-$username = "root";
-$password = "";
-$dbname = "HeritX";
+require_once __DIR__ . '/../../../config.php';
+
+$servername = DB_HOST;
+$username = DB_USER;
+$password = DB_PASS;
+$dbname = DB_NAME;
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 

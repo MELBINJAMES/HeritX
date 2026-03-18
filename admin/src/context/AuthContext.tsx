@@ -22,22 +22,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Load user from localStorage on mount
+    // Load user from localStorage on mount - uses unified key shared with user-dashboard
     useEffect(() => {
-        const storedUser = localStorage.getItem('hertix_user');
+        const storedUser = localStorage.getItem('hertix_user') || localStorage.getItem('finder_user');
         if (storedUser) {
             try {
                 const parsedUser = JSON.parse(storedUser);
                 if (parsedUser && parsedUser.id) {
                     setUser(parsedUser);
+                    // Migrate legacy key if needed
+                    if (!localStorage.getItem('hertix_user')) {
+                        localStorage.setItem('hertix_user', storedUser);
+                        localStorage.removeItem('finder_user');
+                    }
                 } else {
                     console.warn('Invalid user session found. Clearing.');
                     localStorage.removeItem('hertix_user');
+                    localStorage.removeItem('finder_user');
                     setUser(null);
                 }
             } catch (error) {
                 console.error('Failed to parse stored user', error);
                 localStorage.removeItem('hertix_user');
+                localStorage.removeItem('finder_user');
             }
         }
         setLoading(false);
@@ -46,11 +53,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const login = (userData: User) => {
         setUser(userData);
         localStorage.setItem('hertix_user', JSON.stringify(userData));
+        localStorage.removeItem('finder_user'); // clean up legacy key
     };
 
     const logout = () => {
         setUser(null);
         localStorage.removeItem('hertix_user');
+        localStorage.removeItem('finder_user');
     };
 
     return (

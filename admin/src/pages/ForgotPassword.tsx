@@ -18,7 +18,7 @@ const ForgotPassword = () => {
   const [error, setError] = useState('')
 
   // Helper to call PHP API
-  const API_BASE = 'http://localhost/HertiX/admin/public/api';
+  const API_BASE = '/HertiX/admin/public/api';
 
   // Step 1: Send OTP
   const onSendOtp = async (e: FormEvent) => {
@@ -106,7 +106,7 @@ const ForgotPassword = () => {
       if (data.status === 'success') {
         // Redirection logic based on role parameter
         if (roleParam === 'finder') {
-          window.location.href = 'http://localhost:3001/login';
+          window.location.href = '/HertiX/login';
         } else {
           // Default to Shop Owner login if role is 'owner' or missing
           window.location.href = '/shop-owner/login';
@@ -181,7 +181,7 @@ const ForgotPassword = () => {
       )}
       <div className="auth-card">
         <div className="auth-card-header">
-          <a href="http://localhost:3001" className="back-arrow" aria-label="Back to home">
+          <a href="/HertiX/" className="back-arrow" aria-label="Back to home">
             ←
           </a>
           <div className="brand compact" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -312,7 +312,7 @@ const ForgotPassword = () => {
 
         <div className="auth-links">
           {roleParam === 'finder' ? (
-            <a href="http://localhost:3001/login">Return to login</a>
+            <a href="/HertiX/login">Return to login</a>
           ) : (
             <Link to="/shop-owner/login">Return to login</Link>
           )}

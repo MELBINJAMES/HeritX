@@ -84,17 +84,15 @@ if ($generated_signature === $razorpay_signature) {
                 $itemTotal = $itemTotalRaw - $itemDiscount;
             }
 
-            // Auto-approve all orders to confirmed status after payment
             $status = 'confirmed';
+            $qty = intval($item['qty']);
 
-            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, start_date, end_date, total_price, total_paid, status, delivery_method, delivery_fee, delivery_distance, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, razorpay_order_id, razorpay_payment_id, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, 'paid')");
+            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, quantity, start_date, end_date, total_price, total_paid, status, delivery_method, delivery_fee, delivery_distance, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, razorpay_order_id, razorpay_payment_id, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, 'paid')");
             
             if (!$stmt) throw new Exception("Prepare failed: " . $conn->error);
 
-            // Types: iissddssddssssssss
-            // Wait, let's count: user_id(i), item_id(i), start_date(s), end_date(s), total_price(d), total_paid(d), status(s), delivery_method(s), delivery_fee(d), delivery_distance(d), delivery_address(s), city(s), pincode(s), contact_phone(s), pickup_time(s), payment_method(s), razorpay_order_id(s), razorpay_payment_id(s) -> 18 items.
-            // string: iissddssddssssssss
-            $stmt->bind_param("iissddssddssssssss", $userId, $item['id'], $startDate, $endDate, $itemTotal, $totalAmount, $status, $deliveryMethod, $feePerItem, $totalDistance, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod, $razorpay_order_id, $razorpay_payment_id); 
+            // Bind param - quantity is now the 3rd 'i'
+            $stmt->bind_param("iiissddssddssssssss", $userId, $item['id'], $qty, $startDate, $endDate, $itemTotal, $totalAmount, $status, $deliveryMethod, $feePerItem, $totalDistance, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod, $razorpay_order_id, $razorpay_payment_id); 
             
             if (!$stmt->execute()) {
                 error_log("Rentals Insertion Execute failed: " . $stmt->error);
@@ -102,9 +100,19 @@ if ($generated_signature === $razorpay_signature) {
             }
             $stmt->close();
 
-            // Decrease quantity (LEGACY: Removed to support real-time availability calculation from rentals table)
-            // $updateItem = $conn->query("UPDATE items SET quantity = quantity - " . intval($item['qty']) . " WHERE id = " . intval($item['id']));
-            // if (!$updateItem) throw new Exception("Failed to update item stock: " . $conn->error);
+            // Decrease quantity (Automatic Stock Management)
+            $orderedQty = intval($item['qty']);
+            $itemId = intval($item['id']);
+            $updateItem = $conn->query("UPDATE items SET quantity = quantity - $orderedQty WHERE id = $itemId AND quantity >= $orderedQty");
+            if ($conn->affected_rows === 0) {
+                // If we didn't update any row, it might be due to insufficient stock
+                // We should check if the item exists and if the stock was enough
+                $checkStock = $conn->query("SELECT quantity FROM items WHERE id = $itemId");
+                $currentStock = $checkStock->fetch_assoc()['quantity'] ?? 0;
+                if ($currentStock < $orderedQty) {
+                    throw new Exception("Insufficient stock for item: " . ($item['name'] ?? $itemId));
+                }
+            }
 
             // Credit Shop Owner Logic
             $resOwner = $conn->query("SELECT owner_id FROM items WHERE id = " . intval($item['id']));

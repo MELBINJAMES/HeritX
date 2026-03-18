@@ -50,7 +50,7 @@ const Wishlist = () => {
                             <Link to={`/item/${item.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                                 <div style={{ height: '200px', background: '#f8f8f8' }}>
                                     <img
-                                        src={`/${item.image_url}`}
+                                        src={`/HertiX/${item.image_url}`}
                                         alt={item.name}
                                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                         onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/300?text=No+Image'; }}

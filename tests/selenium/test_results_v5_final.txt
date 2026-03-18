@@ -1,0 +1,36 @@
+﻿
+=====================================================
+   ≡ƒÜÇ TEST: OWNER REGISTRATION & DASHBOARD FLOW    
+=====================================================
+
+Step 1: Navigating to Registration Page...
+Step 2: Selecting 'Shop Owner' Role...
+Step 3: Filling in Registration Details...
+Step 4: Uploading Shop Proof...
+Step 5: Submitting Registration...
+Step 6: Verifying Success Modal & Navigating to Login...
+Step 7: Performing Login...
+Step 8: Verifying Dashboard Access...
+node : 
+At line:1 char:1
++ node owner_registration_d
+ashboard_flow.js 2>&1 | 
+tee test_results_v5. ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+     : NotSpecified: (:St  
+  ring) [], RemoteExcept   
+ ion
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 
+Γ¥î TEST FAILED: Waiting 
+for URL to contain 
+"/shop-owner/dashboard"
+Wait timed out after 
+15153ms
+      ≡ƒô╕ Failure screenshot saved to owner_flow_failure.png
+
+[Selenium] -> Test Session Ended.
+

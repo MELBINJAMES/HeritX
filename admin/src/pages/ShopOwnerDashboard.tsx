@@ -242,7 +242,15 @@ const ShopOwnerDashboard = () => {
   const [finalReceiptSent, setFinalReceiptSent] = useState(false);
   const [refundResult, setRefundResult] = useState<{ status: string, method: string, refund_id: string, amount: number } | null>(null);
   const [isRefundSimulating, setIsRefundSimulating] = useState(false);
-  const [refundStep, setRefundStep] = useState<'PROCESSING' | 'SUCCESS'>('PROCESSING');
+  const [refundStep, setRefundStep] = useState<'SELECTION' | 'PROCESSING' | 'SUCCESS'>('PROCESSING');
+
+  // Post-payment receipt state
+  const [ownerPaymentSuccess, setOwnerPaymentSuccess] = useState<{
+    paymentId: string;
+    orderId: string;
+    amount: number;
+    order: any;
+  } | null>(null);
 
   // Inject Razorpay Spinner CSS
   useEffect(() => {
@@ -262,6 +270,60 @@ const ShopOwnerDashboard = () => {
           border-top: 4px solid #3395FF;
           border-radius: 50%;
           animation: rzp-spin 1s linear infinite;
+        }
+
+        /* Gold Coin Animation */
+        @keyframes coin-fly {
+          0% { transform: translateX(-150px) translateY(50px) rotate(0deg) scale(0.5); opacity: 0; }
+          20% { opacity: 1; }
+          70% { transform: translateX(50px) translateY(-20px) rotate(360deg) scale(1.2); }
+          100% { transform: translateX(110px) translateY(5px) rotate(720deg) scale(0.8); opacity: 0; }
+        }
+        .coin-animation-container {
+          position: relative;
+          width: 300px;
+          height: 120px;
+          margin: 0 auto;
+          overflow: hidden;
+          background: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .gold-coin {
+          position: absolute;
+          width: 45px;
+          height: 45px;
+          background: linear-gradient(135deg, #ffd700, #ff8c00);
+          border-radius: 50%;
+          box-shadow: 0 4px 10px rgba(255, 140, 0, 0.4), inset 0 0 10px rgba(255,255,255,0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          font-weight: 900;
+          font-size: 24px;
+          z-index: 2;
+          animation: coin-fly 2.5s infinite ease-in-out;
+        }
+        .slot-line {
+          position: absolute;
+          right: 30px;
+          width: 8px;
+          height: 60px;
+          background: #e2e8f0;
+          border-radius: 10px;
+          box-shadow: inset 2px 2px 5px rgba(0,0,0,0.1);
+        }
+        .glow-effect {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 150px;
+          height: 150px;
+          background: radial-gradient(circle, rgba(51, 149, 255, 0.1) 0%, transparent 70%);
+          pointer-events: none;
         }
       `;
       document.head.appendChild(style);
@@ -319,7 +381,7 @@ const ShopOwnerDashboard = () => {
 
   useEffect(() => {
     if (user?.id) {
-      fetch(`http://localhost/HertiX/admin/public/api/shop_get_settings.php?id=${user.id}`)
+      fetch(`/HertiX/admin/public/api/shop_get_settings.php?id=${user.id}`)
         .then(res => res.json())
         .then(data => {
           if (!data.error) setSettingsData(data);
@@ -342,7 +404,7 @@ const ShopOwnerDashboard = () => {
         formData.append('logo', logoFile);
       }
 
-      const res = await fetch('http://localhost/HertiX/admin/public/api/shop_update_settings.php', {
+      const res = await fetch('/HertiX/admin/public/api/shop_update_settings.php', {
         method: 'POST',
         // headers: { 'Content-Type': 'multipart/form-data' }, // Let browser set boundary
         body: formData
@@ -367,7 +429,7 @@ const ShopOwnerDashboard = () => {
   const handleUpdateStatus = async (orderId: number, newStatus: string, damageNote: string = '', damageDeduction: number = 0) => {
     setLoading(true);
     try {
-      const res = await fetch('http://localhost/HertiX/admin/public/api/shop_update_order_status.php', {
+      const res = await fetch('/HertiX/admin/public/api/shop_update_order_status.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order_id: orderId, status: newStatus, owner_id: user?.id, damage_note: damageNote, damage_deduction: damageDeduction })
@@ -401,6 +463,90 @@ const ShopOwnerDashboard = () => {
     triggerAlert('Email Sent', `Automated receipt emailed to ${order.renter_email}`);
   };
 
+  // ─── Real Razorpay Payment for Owner Dashboard ───────────────────────────
+  const openOwnerRazorpay = async (amount: number, onSuccess?: () => void) => {
+    if (!amount || amount <= 0) {
+      triggerAlert('Invalid Amount', 'Payment amount must be greater than ₹0.');
+      return;
+    }
+
+    // Ensure Razorpay SDK is loaded
+    if (!(window as any).Razorpay) {
+      triggerAlert('Payment Error', 'Razorpay SDK not loaded. Please refresh the page.');
+      return;
+    }
+
+    try {
+      // Step 1: Create a real Razorpay order via the admin backend API
+      const res = await fetch('/HertiX/admin/public/api/payment_create_order.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount })
+      });
+      const data = await res.json();
+
+      if (data.status !== 'success') {
+        triggerAlert('Payment Error', data.message || 'Could not initiate payment. Please try again.');
+        return;
+      }
+
+      // Step 2: Open the real Razorpay checkout popup
+      const options = {
+        key: data.key_id,
+        amount: data.amount,
+        currency: 'INR',
+        name: 'HeritX Rentals',
+        description: 'Refund / Owner Payment',
+        order_id: data.order_id,
+        handler: function (response: any) {
+          // Auto-send email receipt silently
+          fetch('/HertiX/admin/public/api/send_receipt_email.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              order: selectedOrder,
+              payment_id: response.razorpay_payment_id,
+              amount
+            })
+          }).catch(() => {/* silent fail */});
+
+          // Show the post-payment receipt panel
+          setOwnerPaymentSuccess({
+            paymentId: response.razorpay_payment_id,
+            orderId: response.razorpay_order_id,
+            amount,
+            order: selectedOrder
+          });
+
+          // Close the order modal
+          if (onSuccess) onSuccess();
+        },
+        prefill: {
+          name: user?.name || 'Shop Owner',
+          email: user?.email || 'owner@heritx.com',
+          contact: user?.phone || ''
+        },
+        theme: { color: '#3395FF' },
+        modal: {
+          ondismiss: function () {
+            console.log('Razorpay modal dismissed by user');
+          }
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (response: any) {
+        triggerAlert('Payment Failed', response.error.description || 'Payment was not completed.');
+      });
+      rzp.open();
+
+    } catch (err: any) {
+      console.error('Owner Razorpay Error:', err);
+      triggerAlert('Payment Error', 'Something went wrong. Please try again.');
+    }
+  };
+  // ─────────────────────────────────────────────────────────────────────────
+
   // ... useEffect ...
 
   const handleEdit = (item: Item) => {
@@ -430,7 +576,7 @@ const ShopOwnerDashboard = () => {
       setLoading(true);
       closePopup(); // Close confirm modal
       try {
-        const res = await fetch('http://localhost/HertiX/admin/public/api/shop_delete_item.php', {
+        const res = await fetch('/HertiX/admin/public/api/shop_delete_item.php', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ item_id: itemId, owner_id: user?.id })
@@ -497,8 +643,8 @@ const ShopOwnerDashboard = () => {
 
     console.log("Submitting form. Edit Mode:", !!editItemId, "ID:", editItemId);
     const endpoint = editItemId
-      ? 'http://localhost:3001/HertiX/admin/public/api/shop_update_item.php'
-      : 'http://localhost:3001/HertiX/admin/public/api/shop_add_item.php';
+      ? '/HertiX/admin/public/api/shop_update_item.php'
+      : '/HertiX/admin/public/api/shop_add_item.php';
 
     console.log("Endpoint:", endpoint);
 
@@ -558,7 +704,7 @@ const ShopOwnerDashboard = () => {
     console.log("Fetching real data for user:", userId);
     try {
       setLoading(true);
-      const API_BASE = 'http://localhost/HertiX/admin/public/api';
+      const API_BASE = '/HertiX/admin/public/api';
 
       const [invRes, ordRes] = await Promise.all([
         fetch(`${API_BASE}/shop_inventory.php?user_id=${userId}`).catch(e => { console.error("Inv fetch fail", e); return { json: () => [] }; }),
@@ -597,7 +743,7 @@ const ShopOwnerDashboard = () => {
   };
 
   const stats = calculateStats();
-  const handleLogout = () => { logout(); window.location.href = 'http://localhost:3001'; };
+  const handleLogout = () => { logout(); window.location.href = '/HertiX/'; };
 
   // Lock body scroll when any modal is open
   useEffect(() => {
@@ -661,7 +807,7 @@ const ShopOwnerDashboard = () => {
                               <td style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 24px' }}>
                                 <div style={{ width: 44, height: 44, background: '#f1f5f9', borderRadius: '10px', overflow: 'hidden', border: '1px solid #e2e8f0', flexShrink: 0 }}>
                                   <img
-                                    src={item.image_url ? `http://localhost/HertiX/${item.image_url}` : 'https://via.placeholder.com/44?text=📦'}
+                                    src={item.image_url ? `/HertiX/${item.image_url}` : 'https://via.placeholder.com/44?text=📦'}
                                     alt={item.name}
                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                     onError={(e) => {
@@ -784,7 +930,7 @@ const ShopOwnerDashboard = () => {
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <div style={{ width: '40px', height: '40px', background: '#f1f5f9', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
-                              <img src={`http://localhost/HertiX/${order.item_image}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/40?text=📦'; }} />
+                              <img src={`/HertiX/${order.item_image}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/40?text=📦'; }} />
                             </div>
                             <div>
                               <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{order.item_name}</div>
@@ -1426,32 +1572,39 @@ const ShopOwnerDashboard = () => {
       }}>
         <div className="nav-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            {/* Modern back button — icon only */}
             <button
               onClick={() => window.location.href = 'http://localhost:3000'}
+              title="Back to Marketplace"
               style={{
                 background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                padding: '8px 16px',
+                border: '1.5px solid #e2e8f0',
+                width: '40px',
+                height: '40px',
                 borderRadius: '12px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px',
-                color: '#64748b',
-                fontSize: '0.85rem',
-                fontWeight: 600,
+                justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                color: '#475569',
+                fontSize: '1.1rem',
+                fontWeight: 700,
+                transition: 'all 0.2s',
+                flexShrink: 0
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#0f172a'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#64748b'; }}
-              title="Back to Marketplace"
+              onMouseEnter={e => { e.currentTarget.style.background = '#1e293b'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#1e293b'; e.currentTarget.style.transform = 'translateX(-2px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#475569'; e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.transform = 'translateX(0)'; }}
             >
-              ← <span className="hide-on-mobile">Back to Shop</span>
+              ←
             </button>
-            <div style={{ height: '24px', width: '1px', background: '#ccc' }}></div>
-            <div className="brand-logo" onClick={() => window.location.href = 'http://localhost:3000'} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-              <span style={{ fontSize: '1.5rem' }}>🏛️</span> HeritX
-              <span className="brand-badge">Seller</span>
+
+            {/* HeritX Brand — same as Login page */}
+            <div
+              onClick={() => window.location.href = '/HertiX/'}
+              style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', lineHeight: 1 }}
+            >
+              <span style={{ fontSize: '1.8rem', fontWeight: 800, fontFamily: 'Georgia, serif', letterSpacing: '1px', lineHeight: 1.1, color: '#1e293b' }}>HeritX</span>
+              <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '3px', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>Wear the Legacy</span>
             </div>
           </div>
           <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -1561,7 +1714,7 @@ const ShopOwnerDashboard = () => {
 
                               // Transition status to active
                               handleUpdateStatus(order.order_id, 'active');
-                            }} title="Send Receipt">
+                            }}>
                               <FaWhatsapp size={18} />
                             </button>
                           )}
@@ -1836,20 +1989,21 @@ const ShopOwnerDashboard = () => {
                           <h3 style={{ fontSize: '2rem', color: '#0f172a', margin: 0, fontWeight: 900, letterSpacing: '-0.5px' }}>₹{selectedOrder.deposit_amount}</h3>
                         </div>
                         <p style={{ color: '#64748b', marginBottom: '24px', fontSize: '0.95rem', fontWeight: 500 }}>Ready to deeply refund full deposit via Razorpay.</p>
-                        <button className="btn" style={{ width: '100%', padding: '14px', fontSize: '1.05rem', fontWeight: 800, background: '#0f172a', color: '#fff', border: 'none', borderRadius: '16px', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'} onClick={async () => {
-                          setLoading(true);
-                          const res = await fetch('http://localhost/HertiX/admin/public/api/shop_refund_deposit.php', {
-                            method: 'POST', headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ order_id: selectedOrder.order_id, owner_id: user?.id, refund_amount: selectedOrder.deposit_amount, damage_type: 'No Damage', deduction: 0, late_days: 0 })
-                          });
-                          const d = await res.json();
-                          setLoading(false);
-                          if (d.status === 'success') {
-                            triggerAlert('Success', 'Full refund processed successfully.');
-                            setSelectedOrder(null);
-                            if (user?.id) fetchRealData(user.id);
-                          } else triggerAlert('Error', d.message);
-                        }}>Process Full Refund</button>
+                        <button
+                          className="btn"
+                          style={{ width: '100%', padding: '14px', fontSize: '1.05rem', fontWeight: 800, background: '#0f172a', color: '#fff', border: 'none', borderRadius: '16px', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)' }}
+                          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            openOwnerRazorpay(selectedOrder.deposit_amount, () => {
+                              setModalStep('RETURN_CHOICE');
+                              setSelectedOrder(null);
+                            });
+                          }}
+                        >
+                          💳 Pay Full Refund via Razorpay
+                        </button>
                       </div>
                     )}
 
@@ -1915,62 +2069,22 @@ const ShopOwnerDashboard = () => {
                           </div>
                         </div>
 
-                        <button className="btn" style={{ width: '100%', padding: '14px', fontSize: '1.05rem', fontWeight: 800, background: '#3395FF', color: '#fff', border: 'none', borderRadius: '16px', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(51, 149, 255, 0.2)' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'} onClick={async () => {
-                          // --- Start Razorpay Visual Twin Experience ---
-                          setIsRefundSimulating(true);
-                          setRefundStep('PROCESSING');
-
-                          try {
-                            const res = await fetch('http://localhost/HertiX/admin/public/api/shop_refund_deposit.php', {
-                              method: 'POST', headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                order_id: selectedOrder.order_id,
-                                owner_id: user?.id,
-                                refund_amount: selectedOrder.deposit_amount - damageDeduction,
-                                damage_type: damageLabel,
-                                deduction: damageDeduction,
-                                late_days: timeDeduction
-                              })
+                        <button
+                          className="btn"
+                          style={{ width: '100%', padding: '14px', fontSize: '1.05rem', fontWeight: 800, background: '#3395FF', color: '#fff', border: 'none', borderRadius: '16px', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(51, 149, 255, 0.2)' }}
+                          onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                          onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            const refundAmt = selectedOrder.deposit_amount - damageDeduction;
+                            openOwnerRazorpay(refundAmt, () => {
+                              setModalStep('RETURN_CHOICE');
+                              setSelectedOrder(null);
                             });
-                            const d = await res.json();
-
-                            if (d.status === 'success') {
-                              // Artificial delay to mimic bank processing feel
-                              setTimeout(() => {
-                                setRefundResult({
-                                  status: d.status,
-                                  method: d.method,
-                                  refund_id: d.refund_id,
-                                  amount: d.amount
-                                });
-                                setRefundStep('SUCCESS');
-
-                                // --- Detailed Refund Receipt (WhatsApp) ---
-                                const text = `🧾 *Rental Refund Receipt - HeritX*\n\n` +
-                                  `*Order ID:* #${selectedOrder.order_id}\n` +
-                                  `*Item:* ${selectedOrder.item_name}\n\n` +
-                                  `--- Refund Details ---\n` +
-                                  `*Security Deposit:* ₹${selectedOrder.deposit_amount}\n` +
-                                  `*Penalty/Deduction:* -₹${damageDeduction} (${damageLabel})\n` +
-                                  `----------------------------\n` +
-                                  `*Final Refund Amount:* ₹${selectedOrder.deposit_amount - damageDeduction}\n\n` +
-                                  `✅ *Status:* Refund processed via Razorpay. It may take 5-7 business days to reflect in your account.\n\n` +
-                                  `Thank you for using HeritX! We hope to see you again soon.`;
-
-                                const url = `https://wa.me/91${selectedOrder.renter_phone.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
-                                window.open(url, '_blank');
-
-                                if (user?.id) fetchRealData(user.id);
-                              }, 2000);
-                            } else {
-                              setIsRefundSimulating(false);
-                              triggerAlert('Error', d.message);
-                            }
-                          } catch (err) {
-                            setIsRefundSimulating(false);
-                            triggerAlert('Error', 'Network error during refund processing.');
-                          }
-                        }}>Process Partial Refund</button>
+                          }}
+                        >
+                          💳 Pay Partial Refund via Razorpay
+                        </button>
                       </div>
                     )}
                   </div>
@@ -2007,6 +2121,116 @@ const ShopOwnerDashboard = () => {
         </div>
       )}
 
+      {/* ── Post-Payment Success Receipt Panel ── */}
+      {ownerPaymentSuccess && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          zIndex: 10002,
+          background: 'rgba(0,0,0,0.55)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            background: '#fff',
+            borderRadius: '24px',
+            padding: '40px 36px',
+            maxWidth: '440px',
+            width: '90%',
+            boxShadow: '0 32px 64px -12px rgba(0,0,0,0.25)',
+            textAlign: 'center',
+            position: 'relative'
+          }}>
+            {/* Close */}
+            <button
+              onClick={() => setOwnerPaymentSuccess(null)}
+              style={{ position: 'absolute', top: 16, right: 16, background: '#f1f5f9', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: '1.1rem', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >✕</button>
+
+            {/* Success Icon */}
+            <div style={{ width: 72, height: 72, background: 'linear-gradient(135deg, #dcfce7, #bbf7d0)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '2rem' }}>✅</div>
+
+            <h2 style={{ margin: '0 0 6px', fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.5px' }}>Payment Successful!</h2>
+            <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0 0 28px' }}>Deposit refund processed via Razorpay</p>
+
+            {/* Receipt Details */}
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px', marginBottom: '24px', textAlign: 'left' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, fontSize: '0.88rem', color: '#64748b' }}>
+                <span>Customer</span>
+                <span style={{ fontWeight: 700, color: '#0f172a' }}>{ownerPaymentSuccess.order?.renter_name || 'Customer'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, fontSize: '0.88rem', color: '#64748b' }}>
+                <span>Order ID</span>
+                <span style={{ fontWeight: 700, color: '#0f172a' }}>#{ownerPaymentSuccess.order?.order_id}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, fontSize: '0.88rem', color: '#64748b' }}>
+                <span>Payment ID</span>
+                <span style={{ fontWeight: 600, color: '#3395FF', fontSize: '0.8rem' }}>{ownerPaymentSuccess.paymentId}</span>
+              </div>
+              <div style={{ borderTop: '2px dashed #e2e8f0', marginTop: 14, paddingTop: 14, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 700, color: '#0f172a' }}>Amount Paid</span>
+                <span style={{ fontWeight: 900, fontSize: '1.4rem', color: '#16a34a' }}>₹{ownerPaymentSuccess.amount}</span>
+              </div>
+            </div>
+
+            {/* Auto Email Notice */}
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '12px 16px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left' }}>
+              <span style={{ fontSize: '1.2rem' }}>📧</span>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#15803d' }}>Email Receipt Sent Automatically</div>
+                <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Sent to {ownerPaymentSuccess.order?.renter_email}</div>
+              </div>
+            </div>
+
+            {/* WhatsApp Button */}
+            <button
+              onClick={async () => {
+                const phone = (ownerPaymentSuccess.order?.contact_number ||
+                               ownerPaymentSuccess.order?.renter_phone || '').replace(/\D/g, '');
+                const name  = ownerPaymentSuccess.order?.renter_name || 'Customer';
+                const ordId = ownerPaymentSuccess.order?.order_id;
+                const amt   = ownerPaymentSuccess.amount;
+                const payId = ownerPaymentSuccess.paymentId;
+                const msg   =
+                  `🧾 *Rental Refund Receipt - HeritX*\n\n` +
+                  `Hello ${name}, your deposit refund for Order #${ordId} has been successfully processed.\n\n` +
+                  `*--- Details ---*\n` +
+                  `💰 *Refund Amount:* ₹${amt}\n` +
+                  `📄 *Payment Reference:* ${payId}\n` +
+                  `✅ *Status:* Refund Successful\n\n` +
+                  `*--- Shop Info ---*\n` +
+                  `🏪 *Store:* ${settingsData.shop_name}\n` +
+                  `📞 *Contact:* ${settingsData.phone}\n\n` +
+                  `If you have any questions regarding this refund, please contact the shop. Thank you for choosing HeritX! 🙏`;
+                // Open WhatsApp
+                window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+                // Mark order as completed in the database
+                await handleUpdateStatus(ordId, 'completed');
+                // Close the success panel
+                setOwnerPaymentSuccess(null);
+              }}
+              style={{
+                width: '100%', padding: '14px', borderRadius: '14px', border: 'none',
+                background: '#25D366', color: '#fff', fontWeight: 800,
+                fontSize: '1rem', cursor: 'pointer', display: 'flex',
+                alignItems: 'center', justifyContent: 'center', gap: 10,
+                boxShadow: '0 4px 14px rgba(37,211,102,0.3)',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(37,211,102,0.4)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,211,102,0.3)'; }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Send Receipt via WhatsApp
+            </button>
+
+            <button
+              onClick={() => setOwnerPaymentSuccess(null)}
+              style={{ marginTop: 12, width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', background: 'transparent', color: '#64748b', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer' }}
+            >Done</button>
+          </div>
+        </div>
+      )}
+
       {/* Razorpay Visual Twin Simulation Modal */}
       {isRefundSimulating && (
         <div className="modal-overlay" style={{
@@ -2025,7 +2249,7 @@ const ShopOwnerDashboard = () => {
           <div className="modal-content" style={{ maxWidth: '420px', width: '90%', padding: 0, overflow: 'hidden', borderRadius: '12px', border: 'none', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
 
             {/* Razorpay Branded Header */}
-            <div style={{ background: '#3395FF', padding: '20px 25px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ background: '#3395FF', padding: '15px 25px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.5px' }}>Razorpay</div>
                 <div style={{ height: '20px', width: '1px', background: 'rgba(255,255,255,0.3)' }}></div>
@@ -2034,48 +2258,167 @@ const ShopOwnerDashboard = () => {
               <div style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 10px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase' }}>Test Mode</div>
             </div>
 
-            {refundStep === 'PROCESSING' ? (
-              <div style={{ padding: '60px 40px', textAlign: 'center', background: '#fff' }}>
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>
-                  <div className="rzp-spinner"></div>
+            {refundStep === 'SELECTION' && (
+              <div style={{ background: '#fff', display: 'flex', minHeight: '380px' }} className="fade-in">
+                {/* Left Sidebar */}
+                <div style={{ width: '140px', background: '#1a1a1a', padding: '25px 15px', color: '#fff', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '28px', height: '28px', background: '#fff', color: '#000', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px' }}>H</div>
+                    <span style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.5px' }}>HeritX Rentals</span>
+                  </div>
+
+                  <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '8px', padding: '12px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)', marginBottom: '4px', textTransform: 'uppercase' }}>Refund Amount</div>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 800 }}>₹{refundResult?.amount}</div>
+                  </div>
+
+                  <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#3395FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <span style={{ fontSize: '12px' }}>👤</span>
+                    </div>
+                    <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)' }}>+{selectedOrder.renter_phone.slice(-4)}</span>
+                  </div>
                 </div>
-                <h4 style={{ fontSize: '1.3rem', fontWeight: 700, color: '#1e293b', marginBottom: '10px' }}>Processing Refund</h4>
-                <p style={{ color: '#64748b', fontSize: '0.95rem' }}>Talking to your bank... This usually takes a few seconds.</p>
-                <div style={{ marginTop: '40px', fontSize: '0.75rem', color: '#94a3b8' }}>Verified by Razorpay Trusted Gateway</div>
+
+                {/* Right Content */}
+                <div style={{ flex: 1, padding: '25px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h5 style={{ margin: 0, fontSize: '0.9rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Payment Options</h5>
+                    <button style={{ background: 'none', border: 'none', color: '#3395FF', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}>Language</button>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ border: '2px solid #3395FF', borderRadius: '8px', padding: '15px', display: 'flex', alignItems: 'center', gap: '15px', background: '#f0f7ff', position: 'relative' }}>
+                      <div style={{ width: '20px', height: '20px', border: '6px solid #3395FF', borderRadius: '50%' }}></div>
+                      <div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>Original Source</div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Refund will be credited to payer's account</div>
+                      </div>
+                      <span style={{ position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)', background: '#dcfce7', color: '#16a34a', padding: '2px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 800 }}>RECOMMENDED</span>
+                    </div>
+
+                    <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '15px', display: 'flex', alignItems: 'center', gap: '15px', opacity: 0.6 }}>
+                      <div style={{ width: '20px', height: '20px', border: '2px solid #cbd5e1', borderRadius: '50%' }}></div>
+                      <div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1e293b' }}>Direct UPI ID</div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Enter a custom VPA for refund</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={async () => {
+                      setRefundStep('PROCESSING');
+                      try {
+                        const res = await fetch('/HertiX/admin/public/api/shop_refund_deposit.php', {
+                          method: 'POST', headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            order_id: selectedOrder.order_id,
+                            owner_id: user?.id,
+                            refund_amount: refundResult?.amount,
+                            damage_type: damageLabel,
+                            deduction: damageDeduction,
+                            late_days: timeDeduction
+                          })
+                        });
+                        const d = await res.json();
+
+                        // Wait for animation to feel natural
+                        setTimeout(() => {
+                          if (d.status === 'success') {
+                            setRefundResult({ ...refundResult, ...d });
+                            setRefundStep('SUCCESS');
+
+                            // Send WhatsApp
+                            const text = `🧾 *Rental Refund Receipt - HeritX*\n\n` +
+                              `Dear Customer, your rental return for Order #${selectedOrder.order_id} (${selectedOrder.item_name}) has been processed.\n\n` +
+                              `*--- Refund Summary ---*\n` +
+                              `💰 *Initial Deposit:* ₹${selectedOrder.deposit_amount}\n` +
+                              `📉 *Deduction (Damage/Issue):* -₹${damageDeduction} (${damageLabel}${damageNote ? ': ' + damageNote : ''})\n` +
+                              (timeDeduction > 0 ? `⏰ *Late Fee Deduction:* -₹${timeDeduction} (${timeLabel})\n` : '') +
+                              `----------------------------\n` +
+                              `💵 *Final Refund Amount:* ₹${refundResult?.amount}\n\n` +
+                              `✅ *Status:* Refund initiated via Razorpay. It usually reflects in your account within 5-7 business days.\n\n` +
+                              `*--- Shop Contact ---*\n` +
+                              `🏪 *Shop:* ${settingsData.shop_name}\n` +
+                              `📞 *Phone:* ${settingsData.phone}\n\n` +
+                              `If you have any further questions regarding this deduction, please feel free to contact the shop directly. Thank you for using HeritX!`;
+                            const url = `https://wa.me/91${selectedOrder.renter_phone.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
+                            window.open(url, '_blank');
+
+                            if (user?.id) fetchRealData(user.id);
+                          } else {
+                            setIsRefundSimulating(false);
+                            triggerAlert('Refund Error', d.message);
+                          }
+                        }, 3000);
+                      } catch (err) {
+                        setIsRefundSimulating(false);
+                        triggerAlert('Error', 'Connection failed.');
+                      }
+                    }}
+                    style={{ width: '100%', marginTop: '30px', padding: '14px', background: '#3395FF', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(51, 149, 255, 0.3)' }}
+                  >
+                    Continue to Refund
+                  </button>
+
+                  <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Razorpay_logo.svg" alt="Razorpay" style={{ height: '14px', opacity: 0.5 }} />
+                  </div>
+                </div>
               </div>
-            ) : (
+            )}
+
+            {refundStep === 'PROCESSING' && (
+              <div style={{ padding: '60px 40px', textAlign: 'center', background: '#fff' }} className="fade-in">
+                <div className="coin-animation-container">
+                  <div className="glow-effect"></div>
+                  <div className="gold-coin">₹</div>
+                  <div className="slot-line"></div>
+                </div>
+                <h4 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1e293b', marginBottom: '10px' }}>Confirming Payment</h4>
+                <p style={{ color: '#64748b', fontSize: '1rem' }}>This will only take a few seconds.</p>
+
+                <div style={{ marginTop: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 500 }}>Secured by</span>
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Razorpay_logo.svg" alt="Razorpay" style={{ height: '12px', opacity: 0.6 }} />
+                </div>
+              </div>
+            )}
+
+            {refundStep === 'SUCCESS' && (
               <div style={{ padding: '40px 30px', background: '#fff' }} className="fade-in">
                 <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                  <div style={{ width: '70px', height: '70px', background: '#e1f5fe', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                  <div style={{ width: '70px', height: '70px', background: '#dcfce7', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
                     <div style={{ width: '40px', height: '40px', background: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '24px' }}>✓</div>
                   </div>
-                  <h4 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1e293b', marginBottom: '5px' }}>Refund Successful</h4>
-                  <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Successfully sent back to original source</p>
+                  <h4 style={{ fontSize: '1.6rem', fontWeight: 900, color: '#1e293b', marginBottom: '5px', letterSpacing: '-0.5px' }}>Refund Successful</h4>
+                  <p style={{ color: '#64748b', fontSize: '1rem', fontWeight: 500 }}>Successfully sent back to original source</p>
                 </div>
 
-                <div style={{ background: '#f8fafc', borderRadius: '8px', padding: '20px', marginBottom: '30px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                    <span style={{ color: '#64748b', fontSize: '0.85rem' }}>Transaction Amount</span>
-                    <span style={{ color: '#1e293b', fontSize: '1rem', fontWeight: 800 }}>₹{refundResult?.amount}</span>
+                <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '24px', marginBottom: '30px', border: '1px solid #f1f5f9' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <span style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 500 }}>Transaction Amount</span>
+                    <span style={{ color: '#0f172a', fontSize: '1.2rem', fontWeight: 900 }}>₹{refundResult?.amount}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                    <span style={{ color: '#64748b', fontSize: '0.85rem' }}>Refund ID</span>
-                    <span style={{ color: '#334155', fontSize: '0.85rem', fontWeight: 600, fontFamily: 'monospace' }}>{refundResult?.refund_id}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
+                    <span style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 500 }}>Refund ID</span>
+                    <span style={{ color: '#334155', fontSize: '0.9rem', fontWeight: 700, fontFamily: 'monospace' }}>{refundResult?.refund_id}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#64748b', fontSize: '0.85rem' }}>Reference No.</span>
-                    <span style={{ color: '#334155', fontSize: '0.85rem', fontWeight: 600 }}>{Math.floor(Math.random() * 900000000000) + 10000000000}</span>
+                    <span style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 500 }}>Reference No.</span>
+                    <span style={{ color: '#334155', fontSize: '0.9rem', fontWeight: 700 }}>{Math.floor(Math.random() * 900000000000) + 10000000000}</span>
                   </div>
                 </div>
 
-                <button className="btn btn-primary" style={{ width: '100%', padding: '15px', background: '#3395FF', borderColor: '#3395FF', fontWeight: 700, borderRadius: '6px', fontSize: '1rem' }} onClick={() => {
+                <button className="btn btn-primary" style={{ width: '100%', padding: '16px', background: '#3395FF', borderColor: '#3395FF', fontWeight: 800, borderRadius: '8px', fontSize: '1.05rem', boxShadow: '0 4px 12px rgba(51, 149, 255, 0.2)' }} onClick={() => {
                   setIsRefundSimulating(false);
                   setRefundResult(null);
                   setSelectedOrder(null);
                 }}>Close & Back to Dashboard</button>
 
-                <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Razorpay_logo.svg" alt="Razorpay" style={{ height: '14px', opacity: 0.5 }} />
+                <div style={{ textAlign: 'center', marginTop: '24px' }}>
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/8/89/Razorpay_logo.svg" alt="Razorpay" style={{ height: '14px', opacity: 0.4 }} />
                 </div>
               </div>
             )}
@@ -2308,7 +2651,7 @@ const ShopOwnerDashboard = () => {
           <div className="modern-card" style={{ width: 450, maxWidth: '95vw', padding: 0, overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', borderRadius: '16px' }}>
             <div style={{ position: 'relative', height: 250, background: '#f8fafc' }}>
               <img
-                src={viewItem.image_url ? `http://localhost/HertiX/${viewItem.image_url}` : 'https://via.placeholder.com/300'}
+                src={viewItem.image_url ? `/HertiX/${viewItem.image_url}` : 'https://via.placeholder.com/300'}
                 alt={viewItem.name}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = 'https://via.placeholder.com/300' }}

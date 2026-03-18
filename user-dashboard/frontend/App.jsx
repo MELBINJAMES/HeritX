@@ -22,6 +22,7 @@ import UPIGateway from './src/pages/UPIGateway';
 import CulturalGuidance from './src/pages/CulturalGuidance';
 import ShopProfile from './src/pages/ShopProfile';
 import Login from './src/pages/Login';
+import Signup from './src/pages/Signup';
 import ForgotPassword from './src/pages/ForgotPassword';
 import { Terms, Privacy, Cancellation, Refund, HelpCenter, Contact } from './src/pages/LegalPages';
 import ScrollToTop from './src/components/ScrollToTop';
@@ -50,6 +51,7 @@ function App() {
                 <Route element={<PublicLayout />}>
                     <Route path="/" element={<PublicHome />} />
                     <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/browse" element={<BrowseItems />} />
                     <Route path="/item/:id" element={<ItemDetails />} />

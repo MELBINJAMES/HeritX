@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 const FinderDashboard = () => {
   useEffect(() => {
     // Redirect to the independent User Dashboard app
-    window.location.href = 'http://localhost:3001/'
+    window.location.href = '/HertiX/'
   }, [])
 
   return (

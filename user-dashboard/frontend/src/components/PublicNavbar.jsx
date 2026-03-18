@@ -56,10 +56,10 @@ const PublicNavbar = () => {
         }}>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
                 {/* Logo */}
-                <Link to="/" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <a href="/HertiX/" style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                     <span style={{ fontSize: '1.6rem', fontWeight: 800, fontFamily: 'Georgia, serif', letterSpacing: '1px', lineHeight: 1.1, color: '#1e293b' }}>HeritX</span>
                     <span style={{ fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '3px', color: '#64748b', fontWeight: 600 }}>Wear the Legacy</span>
-                </Link>
+                </a>
 
                 {/* Location Display */}
                 <div
@@ -190,7 +190,7 @@ const PublicNavbar = () => {
 
                     <Link to="/" style={{ textDecoration: 'none', color: '#333', fontWeight: 500 }}>{t('home')}</Link>
                     <Link to="/browse" style={{ textDecoration: 'none', color: '#333', fontWeight: 500 }}>{t('browse')}</Link>
-                    {!user && <Link to="/become-owner" style={{ textDecoration: 'none', color: '#1a1a1a', fontWeight: 'bold' }}>{t('becomeOwner')}</Link>}
+                    {!user && <a href="/HertiX/admin/shop-owner/login" style={{ textDecoration: 'none', color: '#1a1a1a', fontWeight: 'bold' }}>{t('becomeOwner')}</a>}
                 </div>
 
                 {/* Language Toggle */}
@@ -216,7 +216,7 @@ const PublicNavbar = () => {
                                 {unreadCount > 0 && (
                                     <span style={{
                                         position: 'absolute', top: '-8px', right: '-8px',
-                                        background: '#ef4444', color: 'white', fontSize: '0.7rem',
+                                        background: '#000000', color: 'white', fontSize: '0.7rem',
                                         width: '16px', height: '16px', borderRadius: '50%',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center'
                                     }}>
@@ -298,7 +298,7 @@ const PublicNavbar = () => {
 
                                         <div
                                             onClick={() => { logout(); setShowProfileMenu(false); }}
-                                            style={{ padding: '10px 15px', cursor: 'pointer', color: '#ef4444', fontWeight: '500' }}
+                                            style={{ padding: '10px 15px', cursor: 'pointer', color: '#000000', fontWeight: 'bold' }}
                                         >
                                             Logout
                                         </div>
@@ -328,7 +328,7 @@ const PublicNavbar = () => {
                                 }}>
                                     Login
                                 </Link>
-                                <a href="http://localhost:3002/register/finder" style={{
+                                <Link to="/signup" style={{
                                     padding: '8px 20px',
                                     background: '#1a1a1a',
                                     borderRadius: '20px',
@@ -337,7 +337,7 @@ const PublicNavbar = () => {
                                     fontWeight: 600
                                 }}>
                                     Sign Up
-                                </a>
+                                </Link>
                             </>
                         )
                     )}

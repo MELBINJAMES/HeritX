@@ -241,8 +241,8 @@ const MapView = ({ userCity, userLat, userLng, singleShop, height = '420px' }) =
         // The line below is added as per the provided 'Code Edit' snippet.
         // If 'matchedDbItem' is not defined in this scope, this line might cause an error.
         // For now, it's placed as per the instruction's context.
-        // const imageUrl = matchedDbItem.image_url ? `http://localhost/HertiX/uploads/${matchedDbItem.image_url}` : null;
-        fetch('http://localhost/HertiX/user-dashboard/backend/api/shop_locations.php')
+        // const imageUrl = matchedDbItem.image_url ? `/HertiX/uploads/${matchedDbItem.image_url}` : null;
+        fetch('/HertiX/user-dashboard/backend/api/shop_locations.php')
             .then(r => r.json())
             .then(data => Array.isArray(data) ? setShops(data) : [])
             .catch(err => console.error('MapView fetch err:', err));

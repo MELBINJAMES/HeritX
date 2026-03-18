@@ -1,9 +1,11 @@
 <?php
+require_once __DIR__ . '/../../../config.php';
+
 // Database Configuration
-$host = 'localhost';
-$db_name = 'Heritx'; // Synced with Admin Panel db
-$username = 'root';
-$password = '';
+$host = DB_HOST;
+$db_name = DB_NAME; // Synced via config.php
+$username = DB_USER;
+$password = DB_PASS;
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$db_name;charset=utf8", $username, $password);

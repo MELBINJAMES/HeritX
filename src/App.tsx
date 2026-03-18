@@ -1,16 +1,20 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import Home from './pages/Home'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import ForgotPassword from './pages/ForgotPassword'
 import ShopOwnerDashboard from './pages/ShopOwnerDashboard'
 import FinderDashboard from './pages/FinderDashboard'
 
+const ExternalRedirect = ({ to }: { to: string }) => {
+  window.location.href = to;
+  return null;
+};
+
 const App = () => {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/HertiX">
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<ExternalRedirect to="/HertiX/user-dashboard/frontend/" />} />
         <Route path="/shop-owner/login" element={<Login role="Shop Owner" />} />
         <Route path="/finder/login" element={<Login role="Finder" />} />
         <Route path="/register" element={<Register />} />
@@ -19,7 +23,7 @@ const App = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/shop-owner/dashboard" element={<ShopOwnerDashboard />} />
         <Route path="/finder/dashboard" element={<FinderDashboard />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<ExternalRedirect to="/HertiX/user-dashboard/frontend/" />} />
       </Routes>
     </BrowserRouter>
   )

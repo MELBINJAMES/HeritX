@@ -1,6 +1,5 @@
 // @ts-nocheck
-import { Link } from 'react-router-dom' // keeping line but commenting out or removing if truly unused.
-// Actually just replace with empty or just Remove line.
+import { Link } from 'react-router-dom'
 
 
 const Home = () => {
@@ -27,29 +26,29 @@ const Home = () => {
 
           <div style={{ display: 'flex', gap: '15px', marginTop: '30px', flexWrap: 'wrap' }}>
             <a
-              href="http://localhost:3001/"
+              href="/HertiX/"
               style={{ padding: '12px 24px', background: '#d15a29', color: 'white', textDecoration: 'none', borderRadius: '8px', fontWeight: 'bold' }}
             >
               Go to Main Platform
             </a>
-            <a
-              href="/admin/dashboard"
+            <Link
+              to="/admin/dashboard"
               style={{ padding: '12px 24px', background: 'rgba(255,255,255,0.1)', color: 'white', textDecoration: 'none', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)' }}
             >
               Admin Access
-            </a>
-            <a
-              href="/shop-owner/login"
+            </Link>
+            <Link
+              to="/shop-owner/login"
               style={{ padding: '12px 24px', background: 'rgba(255,255,255,0.1)', color: 'white', textDecoration: 'none', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)' }}
             >
               Shop Owner Login
-            </a>
-            <a
-              href="/finder/login"
+            </Link>
+            <Link
+              to="/finder/login"
               style={{ padding: '12px 24px', background: 'rgba(255,255,255,0.1)', color: 'white', textDecoration: 'none', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)' }}
             >
               Finder Login
-            </a>
+            </Link>
           </div>
         </div>
 

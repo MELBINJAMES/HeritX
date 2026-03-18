@@ -109,7 +109,7 @@ const BrowseItems = () => {
                 <div style={{ position: 'relative' }}>
                     <Link to={`/item/${item.id}`} className="item-image" style={{ display: 'block' }}>
                         {item.image_url ? (
-                            <img src={`/${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/300?text=No+Image'; }} />
+                            <img src={`/HertiX/${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/300?text=No+Image'; }} />
                         ) : <span>Image</span>}
                     </Link>
                     {hasActiveOffer && (
@@ -139,7 +139,10 @@ const BrowseItems = () => {
                 </div>
                 <div className="item-info">
                     <h3 className="item-name">{item.name}</h3>
-                    <p style={{ color: '#666', fontSize: '0.9rem' }}>{item.category} • {item.occasion}</p>
+                    <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '4px' }}>{item.category} • {item.occasion}</p>
+                    <p style={{ color: item.quantity > 0 ? '#10b981' : '#ef4444', fontSize: '0.82rem', fontWeight: '700' }}>
+                        {item.quantity > 0 ? `${item.quantity} available` : 'Out of Stock'}
+                    </p>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
                         <span className="item-price">₹{item.price_per_day}/day</span>
                         <div style={{ display: 'flex', gap: '8px' }}>
@@ -163,7 +166,7 @@ const BrowseItems = () => {
                                 <FaCartPlus size={14} />
                             </button>
                             <Link to={`/item/${item.id}`} style={{
-                                color: 'white', background: '#1a1a1a', padding: '5px 15px',
+                                color: 'white', background: '#000000', padding: '5px 15px',
                                 borderRadius: '20px', fontSize: '0.85rem', textDecoration: 'none'
                             }}>
                                 {t('view')}
@@ -313,10 +316,10 @@ const BrowseItems = () => {
                 {/* Scenario 3: Location filter applied, but NO items in that location */}
                 {locationFilter && localItems.length === 0 && otherItems.length > 0 && (
                     <div style={{
-                        backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '12px', padding: '20px', marginBottom: '40px', textAlign: 'center'
+                        backgroundColor: '#f8f9fa', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '20px', marginBottom: '40px', textAlign: 'center'
                     }}>
-                        <h3 style={{ margin: '0 0 10px 0', color: '#92400e', fontSize: '1.2rem', fontFamily: 'serif' }}>No items found perfectly matching "{locationFilter}"</h3>
-                        <p style={{ margin: 0, color: '#b45309', fontSize: '0.95rem' }}>Don't worry! Here are some other beautiful traditional items available from nearby locations.</p>
+                        <h3 style={{ margin: '0 0 10px 0', color: '#000000', fontSize: '1.2rem', fontFamily: 'serif' }}>No items found perfectly matching "{locationFilter}"</h3>
+                        <p style={{ margin: 0, color: '#666666', fontSize: '0.95rem' }}>Don't worry! Here are some other beautiful traditional items available from nearby locations.</p>
                     </div>
                 )}
 

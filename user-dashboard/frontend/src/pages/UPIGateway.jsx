@@ -16,7 +16,7 @@ const UPIGateway = () => {
         // Auto-process to success after 4 seconds to simulate "Redirecting"
         const timer = setTimeout(async () => {
             try {
-                const response = await fetch('http://localhost/HertiX/user-dashboard/backend/api/rentals.php', {
+                const response = await fetch('/HertiX/user-dashboard/backend/api/rentals.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(orderDetails)

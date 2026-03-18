@@ -21,7 +21,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                     <LanguageProvider>
                         <LocationProvider>
                             <CartProvider>
-                                <BrowserRouter>
+                                <BrowserRouter basename="/">
                                     <Toaster position="top-center" reverseOrder={false} />
                                     <App />
                                 </BrowserRouter>

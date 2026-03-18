@@ -17,7 +17,7 @@ const ForgotPassword = () => {
 
   // Helper to call PHP API
   // Using relative path assuming Vite proxies to localhost/HertiX/admin/public/api or direct URL
-  const API_BASE = 'http://localhost/HertiX/admin/public/api'
+  const API_BASE = '/HertiX/admin/public/api'
 
   // Step 1: Send OTP
   const onSendOtp = async (e: FormEvent) => {
