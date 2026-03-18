@@ -87,18 +87,39 @@ if ($generated_signature === $razorpay_signature) {
             $qty = intval($item['qty']);
             $depositPerItem = isset($item['deposit_amount']) ? floatval($item['deposit_amount']) : 0.00;
 
-            // DEFINITIVE SCHEMA ORDER (22 Columns): user_id, item_id, start_date, end_date, actual_return_date, total_amount, deposit_amount, status, delivery_method, delivery_fee, total_price, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, payment_status, razorpay_order_id, razorpay_payment_id, quantity, total_paid
-            // Hardcoded constants (3): status='confirmed', delivery_status='Pending', payment_status='paid'
-            // Placeholders count = 22 - 3 = 19 placeholders (?)
-            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, start_date, end_date, actual_return_date, total_amount, deposit_amount, status, delivery_method, delivery_fee, total_price, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, payment_status, razorpay_order_id, razorpay_payment_id, quantity, total_paid) VALUES (?, ?, ?, ?, NULL, ?, ?, 'confirmed', ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, 'paid', ?, ?, ?, ?)");
+            // DEFINITIVE SET SYNTAX (Most surgical approach to prevent any shifting)
+            // status='confirmed', delivery_status='Pending', payment_status='paid' (Hardcoded constants)
+            // Placeholder variables: 19
+            $query = "INSERT INTO rentals SET 
+                user_id = ?, 
+                item_id = ?, 
+                start_date = ?, 
+                end_date = ?, 
+                actual_return_date = NULL,
+                total_amount = ?, 
+                deposit_amount = ?, 
+                status = 'confirmed',
+                delivery_method = ?, 
+                delivery_fee = ?, 
+                total_price = ?, 
+                delivery_address = ?, 
+                city = ?, 
+                pincode = ?, 
+                contact_phone = ?, 
+                delivery_status = 'Pending',
+                pickup_time = ?, 
+                payment_method = ?, 
+                payment_status = 'paid',
+                razorpay_order_id = ?, 
+                razorpay_payment_id = ?, 
+                quantity = ?, 
+                total_paid = ?";
             
+            $stmt = $conn->prepare($query);
             if (!$stmt) throw new Exception("Prepare failed: " . $conn->error);
 
-            // 19 Types for 19 Variables: 
-            // 1-6 (i,i,s,s,d,d): userId, item['id'], startDate, endDate, totalAmount, depositPerItem
-            // 7-13 (s,d,d,s,s,s,s): deliveryMethod, feePerItem, itemTotal, delAddr, delCity, delPin, contactPhone
-            // 14-15 (s,s): pickupTime, paymentMethod
-            // 16-19 (s,s,i,d): razorpay_order_id, razorpay_payment_id, qty, totalAmount
+            // Bind exactly 19 parameters: iissddsddssssssssid
+            // userId(1), itemId(2), startDate(3), endDate(4), totalAmount(5), depositPerItem(6), deliveryMethod(7), feePerItem(8), itemTotal(9), delAddr(10), delCity(11), delPin(12), contactPhone(13), pickupTime(14), paymentMethod(15), razorpay_order_id(16), razorpay_payment_id(17), qty(18), totalAmount(19)
             $type_string = "iissddsddssssssssid"; 
             $stmt->bind_param($type_string, $userId, $item['id'], $startDate, $endDate, $totalAmount, $depositPerItem, $deliveryMethod, $feePerItem, $itemTotal, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod, $razorpay_order_id, $razorpay_payment_id, $qty, $totalAmount); 
             
