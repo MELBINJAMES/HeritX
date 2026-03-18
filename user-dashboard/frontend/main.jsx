@@ -21,7 +21,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                     <LanguageProvider>
                         <LocationProvider>
                             <CartProvider>
-                                <BrowserRouter basename="/">
+                                <BrowserRouter basename={import.meta.env.BASE_URL}>
                                     <Toaster position="top-center" reverseOrder={false} />
                                     <App />
                                 </BrowserRouter>
