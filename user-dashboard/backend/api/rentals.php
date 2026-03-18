@@ -83,18 +83,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $qty = intval($item['qty']);
             $depositPerItem = isset($item['deposit_amount']) ? floatval($item['deposit_amount']) : 0.00;
 
-            // Using delivery_fee column instead of delivery_charge
-            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, quantity, start_date, end_date, total_price, total_paid, total_amount, deposit_amount, status, delivery_method, delivery_fee, delivery_distance, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?)");
+            // DEFINITIVE SCHEMA ORDER: user_id, item_id, start_date, end_date, total_amount, deposit_amount, status, delivery_method, delivery_fee, total_price, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, payment_status, quantity, total_paid
+            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, start_date, end_date, total_amount, deposit_amount, status, delivery_method, delivery_fee, total_price, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, payment_status, quantity, total_paid) VALUES (?, ?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, ?)");
             
             if (!$stmt) {
                 throw new Exception("Prepare failed: " . $conn->error);
             }
 
-            // Types: iiissddddssddsssss (18 types for 18 variables now)
-            $stmt->bind_param("iiissddddssddsssss", $userId, $item['id'], $qty, $startDate, $endDate, $itemTotal, $totalAmount, $totalAmount, $depositPerItem, $data['delivery_method'], $feePerItem, $totalDistance, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod); 
+            // 17 variables for 17 placeholders
+            $stmt->bind_param("iissddssddssssssid", $userId, $item['id'], $startDate, $endDate, $totalAmount, $depositPerItem, $deliveryMethod, $feePerItem, $itemTotal, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod, $paymentStatus, $qty, $totalAmount); 
             
             if (!$stmt->execute()) {
-                 throw new Exception("Execute failed: " . $stmt->error);
+                  throw new Exception("Execute failed: " . $stmt->error);
             }
             $stmt->close();
 
