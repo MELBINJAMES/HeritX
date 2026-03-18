@@ -87,7 +87,7 @@ if ($generated_signature === $razorpay_signature) {
             $status = 'confirmed';
             $qty = intval($item['qty']);
 
-            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, quantity, start_date, end_date, total_price, total_paid, total_amount, status, delivery_method, delivery_fee, delivery_distance, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, razorpay_order_id, razorpay_payment_id, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, 'paid')");
+            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, quantity, start_date, end_date, total_price, total_paid, total_amount, status, delivery_method, delivery_fee, delivery_distance, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, razorpay_order_id, razorpay_payment_id, payment_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, 'paid')");
             
             if (!$stmt) throw new Exception("Prepare failed: " . $conn->error);
 
