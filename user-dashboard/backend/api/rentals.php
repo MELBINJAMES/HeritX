@@ -80,18 +80,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Auto-confirm all orders, skipping the pending/approval step
             $status = 'confirmed';
 
-            $depositPerItem = isset($item['deposit_amount']) ? floatval($item['deposit_amount']) : 0.00;
             $qty = intval($item['qty']);
+            $depositPerItem = isset($item['deposit_amount']) ? floatval($item['deposit_amount']) : 0.00;
 
             // Using delivery_fee column instead of delivery_charge
-            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, quantity, start_date, end_date, total_price, total_paid, total_amount, deposit_amount, status, delivery_method, delivery_fee, delivery_distance, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?)");
+            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, quantity, start_date, end_date, total_price, total_paid, total_amount, deposit_amount, status, delivery_method, delivery_fee, delivery_distance, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?)");
             
             if (!$stmt) {
                 throw new Exception("Prepare failed: " . $conn->error);
             }
 
-            // Types: iiissddddssddssssss (19 types for 19 variables)
-            $stmt->bind_param("iiissddddssddssssss", $userId, $item['id'], $qty, $startDate, $endDate, $itemTotal, $totalAmount, $totalAmount, $depositPerItem, $status, $data['delivery_method'], $feePerItem, $totalDistance, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod); 
+            // Types: iiissddddssddsssss (18 types for 18 variables now)
+            $stmt->bind_param("iiissddddssddsssss", $userId, $item['id'], $qty, $startDate, $endDate, $itemTotal, $totalAmount, $totalAmount, $depositPerItem, $data['delivery_method'], $feePerItem, $totalDistance, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod); 
             
             if (!$stmt->execute()) {
                  throw new Exception("Execute failed: " . $stmt->error);
