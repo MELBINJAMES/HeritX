@@ -128,7 +128,7 @@ if ($generated_signature === $razorpay_signature) {
                 throw new Exception("Execute failed: " . $stmt->error);
             }
             $stmt->close();
-\
+
             // Decrease quantity (Automatic Stock Management)
             $orderedQty = intval($item['qty']);
             $itemId = intval($item['id']);
