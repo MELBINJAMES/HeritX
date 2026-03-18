@@ -87,13 +87,20 @@ if ($generated_signature === $razorpay_signature) {
             $qty = intval($item['qty']);
             $depositPerItem = isset($item['deposit_amount']) ? floatval($item['deposit_amount']) : 0.00;
 
-            // DEFINITIVE SCHEMA ORDER: user_id, item_id, start_date, end_date, total_amount, deposit_amount, status, delivery_method, delivery_fee, total_price, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, payment_status, razorpay_order_id, razorpay_payment_id, quantity, total_paid
+            // DEFINITIVE SCHEMA ORDER (22 Columns): user_id, item_id, start_date, end_date, total_amount, deposit_amount, status, delivery_method, delivery_fee, total_price, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, payment_status, razorpay_order_id, razorpay_payment_id, quantity, total_paid
+            // Hardcoded: status='confirmed', delivery_status='Pending', payment_status='paid' (3 constants)
+            // Placeholders: 22 - 3 = 19 placeholders (?)
             $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, start_date, end_date, total_amount, deposit_amount, status, delivery_method, delivery_fee, total_price, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, payment_status, razorpay_order_id, razorpay_payment_id, quantity, total_paid) VALUES (?, ?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, 'paid', ?, ?, ?, ?)");
             
             if (!$stmt) throw new Exception("Prepare failed: " . $conn->error);
 
-            // 19 variables for 19 placeholders
-            $stmt->bind_param("iissddssddssssssssid", $userId, $item['id'], $startDate, $endDate, $totalAmount, $depositPerItem, $deliveryMethod, $feePerItem, $itemTotal, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod, $razorpay_order_id, $razorpay_payment_id, $qty, $totalAmount); 
+            // 19 Types for 19 Variables: 
+            // Blocks: 
+            // 1-6 (i,i,s,s,d,d): userId, item['id'], startDate, endDate, totalAmount, depositPerItem
+            // 7-13 (s,d,d,s,s,s,s): deliveryMethod, feePerItem, itemTotal, delAddr, delCity, delPin, contactPhone
+            // 14-15 (s,s): pickupTime, paymentMethod
+            // 16-19 (s,s,i,d): razorpay_order_id, razorpay_payment_id, qty, totalAmount
+            $stmt->bind_param("iissddsddssssssssid", $userId, $item['id'], $startDate, $endDate, $totalAmount, $depositPerItem, $deliveryMethod, $feePerItem, $itemTotal, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod, $razorpay_order_id, $razorpay_payment_id, $qty, $totalAmount); 
             
             if (!$stmt->execute()) {
                 error_log("Rentals Insertion Execute failed: " . $stmt->error);

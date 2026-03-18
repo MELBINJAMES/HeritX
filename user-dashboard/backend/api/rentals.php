@@ -83,15 +83,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $qty = intval($item['qty']);
             $depositPerItem = isset($item['deposit_amount']) ? floatval($item['deposit_amount']) : 0.00;
 
-            // DEFINITIVE SCHEMA ORDER: user_id, item_id, start_date, end_date, total_amount, deposit_amount, status, delivery_method, delivery_fee, total_price, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, payment_status, quantity, total_paid
-            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, start_date, end_date, total_amount, deposit_amount, status, delivery_method, delivery_fee, total_price, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, payment_status, quantity, total_paid) VALUES (?, ?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, ?)");
+            // DEFINITIVE SCHEMA ORDER (20 Columns): user_id, item_id, start_date, end_date, total_amount, deposit_amount, status, delivery_method, delivery_fee, total_price, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, payment_status, quantity, total_paid
+            // Hardcoded: status='confirmed', delivery_status='Pending', payment_status='unpaid' (3 constants)
+            // Placeholders: 20 - 3 = 17 placeholders (?)
+            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, start_date, end_date, total_amount, deposit_amount, status, delivery_method, delivery_fee, total_price, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, payment_status, quantity, total_paid) VALUES (?, ?, ?, ?, ?, ?, 'confirmed', ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, 'unpaid', ?, ?)");
             
             if (!$stmt) {
                 throw new Exception("Prepare failed: " . $conn->error);
             }
 
-            // 17 variables for 17 placeholders
-            $stmt->bind_param("iissddssddssssssid", $userId, $item['id'], $startDate, $endDate, $totalAmount, $depositPerItem, $deliveryMethod, $feePerItem, $itemTotal, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod, $paymentStatus, $qty, $totalAmount); 
+            // 17 Types for 17 Variables:
+            // Blocks:
+            // 1-6 (i,i,s,s,d,d): userId, item['id'], startDate, endDate, totalAmount, depositPerItem
+            // 7-13 (s,d,d,s,s,s,s): deliveryMethod, feePerItem, itemTotal, delAddr, delCity, delPin, contactPhone
+            // 14-15 (s,s): pickupTime, paymentMethod
+            // 16-17 (i,d): qty, totalAmount
+            $stmt->bind_param("iissddsddsssssssid", $userId, $item['id'], $startDate, $endDate, $totalAmount, $depositPerItem, $deliveryMethod, $feePerItem, $itemTotal, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod, $qty, $totalAmount); 
             
             if (!$stmt->execute()) {
                   throw new Exception("Execute failed: " . $stmt->error);
