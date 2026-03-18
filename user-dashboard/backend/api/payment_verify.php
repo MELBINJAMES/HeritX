@@ -88,7 +88,7 @@ if ($generated_signature === $razorpay_signature) {
             $depositPerItem = isset($item['deposit_amount']) ? floatval($item['deposit_amount']) : 0.00;
 
             // DEFINITIVE SET SYNTAX (Most surgical approach to prevent any shifting)
-            // status='confirmed', delivery_status='Pending', payment_status='paid' (Hardcoded constants)
+            // Hardcoded constants (3): status='confirmed', delivery_status='Pending', payment_status='paid'
             // Placeholder variables: 19
             $query = "INSERT INTO rentals SET 
                 user_id = ?, 
@@ -128,7 +128,7 @@ if ($generated_signature === $razorpay_signature) {
                 throw new Exception("Execute failed: " . $stmt->error);
             }
             $stmt->close();
-
+\
             // Decrease quantity (Automatic Stock Management)
             $orderedQty = intval($item['qty']);
             $itemId = intval($item['id']);
