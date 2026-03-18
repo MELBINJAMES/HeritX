@@ -87,18 +87,20 @@ if ($generated_signature === $razorpay_signature) {
             $qty = intval($item['qty']);
             $depositPerItem = isset($item['deposit_amount']) ? floatval($item['deposit_amount']) : 0.00;
 
-            // EXHAUSTIVE SCHEMA ALIGNMENT (Mapping exactly to the 38 columns provided)
-            // user_id(2), item_id(3), start_date(4), end_date(5), actual_return_date(6:NULL), total_amount(7), deposit_amount(8), status(9:confirmed), delivery_method(11), delivery_charge(12:feePerItem), total_price(13:itemTotal), delivery_address(14), city(15), pincode(16), contact_phone(17), delivery_status(23:Pending), pickup_time(24), payment_method(25), payment_status(26:paid), razorpay_order_id(28), razorpay_payment_id(29), quantity(30), total_paid(38)
-            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, start_date, end_date, actual_return_date, total_amount, deposit_amount, status, delivery_method, delivery_charge, total_price, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, payment_status, razorpay_order_id, razorpay_payment_id, quantity, total_paid) VALUES (?, ?, ?, ?, NULL, ?, ?, 'confirmed', ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, 'paid', ?, ?, ?, ?)");
+            // DEFINITIVE SCHEMA ORDER (22 Columns): user_id, item_id, start_date, end_date, actual_return_date, total_amount, deposit_amount, status, delivery_method, delivery_fee, total_price, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, payment_status, razorpay_order_id, razorpay_payment_id, quantity, total_paid
+            // Hardcoded constants (3): status='confirmed', delivery_status='Pending', payment_status='paid'
+            // Placeholders count = 22 - 3 = 19 placeholders (?)
+            $stmt = $conn->prepare("INSERT INTO rentals (user_id, item_id, start_date, end_date, actual_return_date, total_amount, deposit_amount, status, delivery_method, delivery_fee, total_price, delivery_address, city, pincode, contact_phone, delivery_status, pickup_time, payment_method, payment_status, razorpay_order_id, razorpay_payment_id, quantity, total_paid) VALUES (?, ?, ?, ?, NULL, ?, ?, 'confirmed', ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, 'paid', ?, ?, ?, ?)");
             
             if (!$stmt) throw new Exception("Prepare failed: " . $conn->error);
 
-            // Bind param - 18 placeholders (?): iiss dd s dd ssss ss ss id
-            // userId(1), itemId(2), start(3), end(4), amt(5), dep(6), method(7), charge(8), price(9), addr(10), city(11), pin(12), phone(13), pickup(14), payMeth(15), rzOrder(16), rzPay(17), qty(18), paid(19)
-            // Wait, let's re-count placeholders: ?, ?, ?, ?, (4) then NULL, then ?, ? (6), then 'confirmed', then ?, ?, ?, ?, ?, ?, ? (13), then 'Pending', then ?, ? (15), then 'paid', then ?, ?, ?, ? (19).
-            // YES. 19 placeholders.
-            $stmt->bind_param("iissddsd dsssssssid", $userId, $item['id'], $startDate, $endDate, $totalAmount, $depositPerItem, $deliveryMethod, $feePerItem, $itemTotal, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod, $razorpay_order_id, $razorpay_payment_id, $qty, $totalAmount); 
-            // Cleaning up the type string spaces...
+            // 19 Types for 19 Variables: 
+            // 1-6 (i,i,s,s,d,d): userId, item['id'], startDate, endDate, totalAmount, depositPerItem
+            // 7-13 (s,d,d,s,s,s,s): deliveryMethod, feePerItem, itemTotal, delAddr, delCity, delPin, contactPhone
+            // 14-15 (s,s): pickupTime, paymentMethod
+            // 16-19 (s,s,i,d): razorpay_order_id, razorpay_payment_id, qty, totalAmount
+            $type_string = "iissddsddssssssssid"; 
+            $stmt->bind_param($type_string, $userId, $item['id'], $startDate, $endDate, $totalAmount, $depositPerItem, $deliveryMethod, $feePerItem, $itemTotal, $delAddr, $delCity, $delPin, $contactPhone, $pickupTime, $paymentMethod, $razorpay_order_id, $razorpay_payment_id, $qty, $totalAmount); 
             
             if (!$stmt->execute()) {
                 error_log("Rentals Insertion Execute failed: " . $stmt->error);
