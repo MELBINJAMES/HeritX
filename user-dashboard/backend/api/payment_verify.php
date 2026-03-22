@@ -59,6 +59,7 @@ if ($generated_signature === $razorpay_signature) {
     try {
         $itemCount = count($cart);
         $feePerItem = $itemCount > 0 ? $totalDeliveryFee / $itemCount : 0;
+        $rentalIds = [];
 
         // 1. Insert Rentals
         foreach ($cart as $item) {
@@ -127,6 +128,7 @@ if ($generated_signature === $razorpay_signature) {
                 error_log("Rentals Insertion Execute failed: " . $stmt->error);
                 throw new Exception("Execute failed: " . $stmt->error);
             }
+            $rentalIds[] = $stmt->insert_id;
             $stmt->close();
 
             // Decrease quantity (Automatic Stock Management)
@@ -215,7 +217,7 @@ if ($generated_signature === $razorpay_signature) {
         }
 
         $conn->commit();
-        echo json_encode(['status' => 'success', 'message' => 'Payment verified and order created', 'payment_id' => $rentPaymentId]);
+        echo json_encode(['status' => 'success', 'message' => 'Payment verified and order created', 'payment_id' => $rentPaymentId, 'order_ids' => $rentalIds]);
 
     } catch (Exception $e) {
         $conn->rollback();

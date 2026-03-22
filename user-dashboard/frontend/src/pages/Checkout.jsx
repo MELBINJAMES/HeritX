@@ -392,6 +392,7 @@ const Checkout = () => {
                                 clearCart();
                                 navigate('/payment-success', {
                                     state: {
+                                        orderIds: verifyData.order_ids || [],
                                         totalAmount: totalPayable,
                                         paymentId: response.razorpay_payment_id,
                                         message: "Payment Received! Your order is confirmed.",
